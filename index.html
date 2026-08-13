@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#111827" />
+<link rel="manifest" href="manifest.webmanifest" />
+<title>Minhas Finanças</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--amber:#d97706}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:1100px;margin:auto;padding:16px 16px 88px}.top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}.title h1{font-size:24px;margin:0}.title p{margin:4px 0 0;color:var(--muted);font-size:14px}.month-nav{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);padding:8px;border-radius:14px}.month-nav button,.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.month-nav button{background:#f3f4f6}.month-label{min-width:150px;text-align:center;font-weight:800;text-transform:capitalize}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 4px 18px rgba(17,24,39,.04)}.metric .label{color:var(--muted);font-size:13px}.metric .value{font-size:26px;font-weight:900;margin-top:6px}.metric .sub{font-size:12px;color:var(--muted);margin-top:4px}.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.amber{color:var(--amber)}
+.section{margin-top:14px}.section h2{font-size:17px;margin:0 0 12px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.collapse-btn{border:0;background:#f3f4f6;border-radius:10px;padding:8px 11px;font-weight:900;cursor:pointer;min-width:42px}.collapsible.hidden{display:none}.pending-chip{display:inline-block;margin-top:4px;font-size:12px;padding:4px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:800}.paid-chip{display:inline-block;margin-top:4px;font-size:12px;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:800}.section-head h2{margin:0}.payable-total{font-weight:900;color:var(--amber)}.two{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}.form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px}.form input,.form select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.btn-primary{background:var(--blue);color:#fff}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}.btn-muted{background:#f3f4f6;color:#111827}.btn:disabled{opacity:.5;cursor:not-allowed}.list{display:flex;flex-direction:column;gap:8px}.item{display:grid;grid-template-columns:1.5fr .8fr .8fr .8fr auto;gap:8px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px}.item .desc{font-weight:700}.bill-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}.item.paid-row{opacity:.72;background:#f9fafb}.item .small{font-size:12px;color:var(--muted)}.amount{font-weight:900;text-align:right}.icon-btn{border:0;background:#f3f4f6;border-radius:8px;padding:8px;cursor:pointer}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.invoice-box{display:flex;flex-direction:column;gap:12px}.invoice-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.badge{font-size:12px;padding:6px 9px;border-radius:999px;font-weight:800;background:#f3f4f6}.badge.paid{background:#dcfce7;color:#166534}.badge.open{background:#fef3c7;color:#92400e}.invoice-value{font-size:32px;font-weight:900}.hint{font-size:12px;color:var(--muted);line-height:1.45}.footerbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);border-top:1px solid var(--line);padding:10px 16px;backdrop-filter:blur(10px)}.footerbar .inner{max-width:1100px;margin:auto;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modal-card{background:#fff;border-radius:16px;padding:18px;width:min(520px,100%)}.row{display:flex;gap:8px}.row>*{flex:1}.modal input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;margin:8px 0}.payable-form{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.payable-form input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.optional-date{display:flex;flex-direction:column;gap:4px}.optional-date-label{font-size:11px;color:var(--muted);padding-left:2px}@media(max-width:700px){.payable-form{grid-template-columns:1fr 1fr}.payable-form .wide{grid-column:1/-1}}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.form{grid-template-columns:1fr 1fr}.form .wide{grid-column:1/-1}.item{grid-template-columns:1fr auto}.item>:not(.desc):not(.amount):not(.icon-btn):not(.bill-actions){display:none}.item.bill-item{grid-template-columns:1fr auto}.item.bill-item .amount{display:none}.bill-actions{display:flex!important}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:21px}.form{grid-template-columns:1fr}.month-label{min-width:120px}.app{padding:12px 12px 96px}}
+
+.auth-screen{position:fixed;inset:0;z-index:9999;background:#f5f7fb;display:flex;align-items:center;justify-content:center;padding:20px}.auth-card{width:min(420px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 14px 45px rgba(17,24,39,.12)}.auth-card h1{margin:0 0 6px}.auth-card p{margin:0 0 18px;color:var(--muted)}.auth-card input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:6px 0;font:inherit}.auth-card .btn{width:100%;margin-top:10px}.auth-error{min-height:20px;color:var(--red);font-size:13px;margin-top:8px}.auth-status{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}.user-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.user-email{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <h1>Minhas Finanças</h1>
+    <p>Entre para acessar e sincronizar seus dados.</p>
+    <input id="loginEmail" type="email" autocomplete="email" placeholder="E-mail" />
+    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Senha" />
+    <button class="btn btn-primary" id="loginBtn">Entrar</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-status" id="authStatus">Conectando ao Supabase…</div>
+  </div>
+</div>
+<div class="app">
+  <div class="top">
+    <div class="title"><h1>Minhas Finanças</h1><p>Controle pessoal de saldo, gastos e faturas</p></div>
+    <div class="user-strip"><span class="user-email" id="userEmail"></span><button class="btn btn-muted" id="logoutBtn">Sair</button><div class="month-nav"><button id="prevMonth">◀</button><div class="month-label" id="monthLabel"></div><button id="nextMonth">▶</button></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card metric"><div class="label">Total em conta</div><div class="value blue" id="balanceValue">R$ 0,00</div><div class="sub"><button class="icon-btn" id="editBalance">Editar saldo</button></div></div>
+    <div class="card metric"><div class="label">Receitas do mês</div><div class="value green" id="incomeValue">R$ 0,00</div><div class="sub">Entradas registradas</div></div>
+    <div class="card metric"><div class="label">Saldo pendente do mês</div><div class="value amber" id="expenseValue">R$ 0,00</div><div class="sub">Contas que ainda faltam pagar</div></div>
+    <div class="card metric"><div class="label">Gastos no cartão</div><div class="value amber" id="cardValue">R$ 0,00</div><div class="sub">Vai para a fatura do próximo mês</div></div>
+  </div>
+
+  <div class="section card">
+    <h2>Novo lançamento</h2>
+    <div class="form">
+      <input class="wide" id="desc" placeholder="Descrição (ex.: Mercado)" />
+      <input id="amount" type="number" min="0" step="0.01" placeholder="Valor" />
+      <select id="type"><option value="expense">Despesa</option><option value="income">Receita</option><option value="payable">A pagar</option></select>
+      <select id="method"><option value="pix">Pix</option><option value="debit">Débito</option><option value="cash">Dinheiro</option><option value="credit">Cartão de crédito</option></select>
+      <button class="btn btn-primary" id="addBtn">Adicionar</button>
+    </div>
+  </div>
+
+  <div class="two section">
+    <div class="card">
+      <div class="section-head">
+        <h2>Lançamentos de <span id="monthInline"></span></h2>
+        <button class="collapse-btn" id="toggleTx" aria-expanded="true" title="Minimizar lançamentos">▲</button>
+      </div>
+      <div class="collapsible" id="txContent">
+        <div class="list" id="txList"></div>
+      </div>
+    </div>
+    <div class="invoice-box">
+      <div class="card">
+        <div class="invoice-head"><div><div class="label">Fatura atual</div><div class="hint" id="currentInvoiceHint"></div></div><div class="badge open" id="invoiceStatus">Em aberto</div></div>
+        <div class="invoice-value" id="currentInvoiceValue">R$ 0,00</div>
+        <button class="btn btn-success" id="payInvoiceBtn">Pagar fatura</button>
+        <div class="hint">Ao pagar, o valor é subtraído do Total em conta e a fatura fica registrada como paga.</div>
+      </div>
+      <div class="card">
+        <div class="label">Fatura do próximo mês</div>
+        <div class="invoice-value amber" id="nextInvoiceValue">R$ 0,00</div>
+        <div class="hint" id="nextInvoiceHint"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section card">
+    <h2>Histórico de faturas</h2>
+    <div class="list" id="invoiceHistory"></div>
+  </div>
+</div>
+
+<div class="footerbar"><div class="inner"><button class="btn btn-muted" id="exportBtn">Exportar dados</button><button class="btn btn-muted" id="importBtn">Importar dados</button><input type="file" id="importFile" accept="application/json" hidden /></div></div>
+
+<div class="modal" id="balanceModal"><div class="modal-card"><h2>Editar total em conta</h2><input id="balanceInput" type="number" step="0.01" /><div class="row"><button class="btn btn-muted" id="cancelBalance">Cancelar</button><button class="btn btn-primary" id="saveBalance">Salvar</button></div></div></div>
+
+<script>
+const SUPABASE_URL='https://skwygbahzutobygkvavw.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_sjyAqe_1ck8c4PHG0Yzj1A_yv7eegQN';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const KEY='minhas_financas_v2';
+const COLLAPSE_KEY='minhas_financas_tx_collapsed';
+const DEFAULT_STATE={"balance": 58.129999999999995, "transactions": [{"id": "8962cc71-c127-408b-9644-fa808014db47", "desc": "Fatura  Cartão", "amount": 1608, "type": "expense", "method": "credit", "month": "2026-07", "createdAt": 1786383144392}, {"id": "49b9cf6b-759f-45e8-b7bf-9d0b25d22c92", "desc": "Salário", "amount": 1489, "type": "income", "method": "pix", "month": "2026-08", "createdAt": 1786383174179}, {"id": "567d2d2d-814e-48b8-880f-9acce0c46e6a", "desc": "Investimento", "amount": 149, "type": "income", "method": "pix", "month": "2026-08", "createdAt": 1786383192162}, {"id": "6c054bd6-6924-4606-9b4f-6e502c924a0b", "desc": "Remédio da pitucaa, pai", "amount": 138, "type": "income", "method": "pix", "month": "2026-08", "createdAt": 1786383208263}, {"id": "e264849e-fe89-416c-9ceb-cfd8697eb1c9", "desc": "Psicóloga", "amount": 45, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383232321}, {"id": "e0bbbd11-5a59-4818-a76e-ec458dc3b4f1", "desc": "Formatura Sabrina", "amount": 26.3, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383242439}, {"id": "8c6cdf95-bb3a-4670-a049-d8e7154a41fe", "desc": "Saldo anterior", "amount": 35.55, "type": "income", "method": "pix", "month": "2026-08", "createdAt": 1786383337620}, {"id": "a08a6d4b-5743-46f8-9743-fb9e396cf3ab", "desc": "Presente Juliana", "amount": 10, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383353627}, {"id": "13fb84cc-8ca9-46e4-986a-920a1c47aec3", "desc": "Luan", "amount": 20, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383360374}, {"id": "e415eda2-cef2-4d49-b7f4-6c7835286d50", "desc": "Kurt", "amount": 29.12, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383370271}, {"id": "175e5092-a235-4952-a1aa-952989901555", "desc": "Resgate loops", "amount": 10, "type": "income", "method": "pix", "month": "2026-08", "createdAt": 1786383388075}, {"id": "4dd19f9e-8e8d-4c7a-a131-0119cd32338b", "desc": "Lavagem carro", "amount": 25, "type": "expense", "method": "pix", "month": "2026-08", "createdAt": 1786383411353}, {"id": "b4ad6d92-bd89-4f87-9d5b-72584b2204d4", "desc": "Fatura por enquanto", "amount": 1095, "type": "expense", "method": "credit", "month": "2026-08", "createdAt": 1786383463390}], "paidInvoices": {"2026-08": {"paidAt": 1786383220193, "amount": 1608}}, "invoicePayments": [{"id": "1786383220193", "invoiceMonth": "2026-08", "sourceMonth": "2026-07", "amount": 1608, "paidAt": 1786383220193}], "bills": [{"id": "867a10df-c68c-47fe-b657-73b4d8c4c52f", "desc": "Psicóloga", "amount": 45, "dueDate": "", "month": "2026-08", "createdAt": 1786383255222, "paidAt": null}]};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||clone(DEFAULT_STATE);
+state.transactions=Array.isArray(state.transactions)?state.transactions:[];
+state.paidInvoices=state.paidInvoices||{};
+state.invoicePayments=Array.isArray(state.invoicePayments)?state.invoicePayments:[];
+state.bills=Array.isArray(state.bills)?state.bills:[];
+let viewDate=new Date(2026,7,1);
+let txCollapsed=localStorage.getItem(COLLAPSE_KEY)==='1';
+let currentUser=null;
+let syncBusy=false;
+let syncQueued=false;
+
+function localSave(){ localStorage.setItem(KEY,JSON.stringify(state)); }
+function showSyncStatus(text){ const el=document.getElementById('authStatus'); if(el) el.textContent=text||''; }
+
+async function syncAll(){
+  if(!currentUser){ localSave(); return; }
+  if(syncBusy){ syncQueued=true; return; }
+  syncBusy=true;
+  try{
+    const uid=currentUser.id;
+    let r=await sb.from('finance_settings').upsert({user_id:uid,balance:Number(state.balance||0),updated_at:new Date().toISOString()},{onConflict:'user_id'}); if(r.error) throw r.error;
+    r=await sb.from('transactions').delete().eq('user_id',uid); if(r.error) throw r.error;
+    if(state.transactions.length){
+      const rows=state.transactions.map(t=>({id:t.id,user_id:uid,description:t.desc,amount:Number(t.amount),type:t.type,method:t.method,month:t.month,created_at:new Date(Number(t.createdAt)||Date.now()).toISOString()}));
+      r=await sb.from('transactions').insert(rows); if(r.error) throw r.error;
+    }
+    r=await sb.from('bills').delete().eq('user_id',uid); if(r.error) throw r.error;
+    if(state.bills.length){
+      const rows=state.bills.map(b=>({id:b.id,user_id:uid,description:b.desc,amount:Number(b.amount),due_date:b.dueDate||null,month:b.month,paid_at:b.paidAt?new Date(Number(b.paidAt)).toISOString():null,created_at:new Date(Number(b.createdAt)||Date.now()).toISOString()}));
+      r=await sb.from('bills').insert(rows); if(r.error) throw r.error;
+    }
+    r=await sb.from('invoice_payments').delete().eq('user_id',uid); if(r.error) throw r.error;
+    if(state.invoicePayments.length){
+      const rows=state.invoicePayments.map(x=>({user_id:uid,invoice_month:x.invoiceMonth,source_month:x.sourceMonth,amount:Number(x.amount),paid_at:new Date(Number(x.paidAt)||Date.now()).toISOString()}));
+      r=await sb.from('invoice_payments').insert(rows); if(r.error) throw r.error;
+    }
+    localSave();
+  }catch(err){
+    console.error('Erro de sincronização:',err);
+    alert('Os dados foram salvos neste aparelho, mas houve erro ao sincronizar com o Supabase: '+(err.message||err));
+    localSave();
+  }finally{
+    syncBusy=false;
+    if(syncQueued){ syncQueued=false; syncAll(); }
+  }
+}
+function save(){ localSave(); render(); syncAll(); }
+
+async function loadRemote(){
+  const uid=currentUser.id;
+  const [settingsRes,txRes,billsRes,payRes]=await Promise.all([
+    sb.from('finance_settings').select('balance').eq('user_id',uid).maybeSingle(),
+    sb.from('transactions').select('*').eq('user_id',uid).order('created_at',{ascending:true}),
+    sb.from('bills').select('*').eq('user_id',uid).order('created_at',{ascending:true}),
+    sb.from('invoice_payments').select('*').eq('user_id',uid).order('paid_at',{ascending:true})
+  ]);
+  for(const r of [settingsRes,txRes,billsRes,payRes]) if(r.error) throw r.error;
+  const hasRemote=!!settingsRes.data || (txRes.data?.length||0)>0 || (billsRes.data?.length||0)>0 || (payRes.data?.length||0)>0;
+  if(!hasRemote){
+    await syncAll();
+    return;
+  }
+  state.balance=Number(settingsRes.data?.balance||0);
+  state.transactions=(txRes.data||[]).map(t=>({id:t.id,desc:t.description,amount:Number(t.amount),type:t.type,method:t.method,month:t.month,createdAt:new Date(t.created_at).getTime()}));
+  state.bills=(billsRes.data||[]).map(b=>({id:b.id,desc:b.description,amount:Number(b.amount),dueDate:b.due_date||'',month:b.month,paidAt:b.paid_at?new Date(b.paid_at).getTime():null,createdAt:new Date(b.created_at).getTime()}));
+  state.invoicePayments=(payRes.data||[]).map(x=>({id:x.id,invoiceMonth:x.invoice_month,sourceMonth:x.source_month,amount:Number(x.amount),paidAt:new Date(x.paid_at).getTime()}));
+  state.paidInvoices={};
+  for(const x of state.invoicePayments) state.paidInvoices[x.invoiceMonth]={paidAt:x.paidAt,amount:x.amount};
+  localSave();
+}
+
+async function enterApp(session){
+  currentUser=session.user;
+  document.getElementById('userEmail').textContent=currentUser.email||'';
+  showSyncStatus('Sincronizando…');
+  try{ await loadRemote(); document.getElementById('authScreen').style.display='none'; render(); }
+  catch(err){ document.getElementById('authError').textContent='Erro ao carregar dados: '+(err.message||err); showSyncStatus(''); }
+}
+
+async function initAuth(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) return enterApp(session);
+  document.getElementById('authStatus').textContent='Entre com o usuário criado no Supabase.';
+}
+
+document.getElementById('loginBtn').onclick=async()=>{
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('authError'); errEl.textContent='';
+  if(!email||!password){errEl.textContent='Digite seu e-mail e senha.';return;}
+  document.getElementById('loginBtn').disabled=true; showSyncStatus('Entrando…');
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  document.getElementById('loginBtn').disabled=false;
+  if(error){errEl.textContent='Não foi possível entrar: '+error.message;showSyncStatus('');return;}
+  await enterApp(data.session);
+};
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+document.getElementById('logoutBtn').onclick=async()=>{await sb.auth.signOut();currentUser=null;location.reload();};
+
+function txForMonth(key){return state.transactions.filter(t=>t.month===key)}
+function creditTotal(key){return txForMonth(key).filter(t=>t.type==='expense'&&t.method==='credit').reduce((s,t)=>s+Number(t.amount||0),0)}
+function incomeTotal(key){return txForMonth(key).filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount||0),0)}
+function billsForMonth(key){return state.bills.filter(b=>b.month===key)}
+function pendingBillsTotal(key){return billsForMonth(key).filter(b=>!b.paidAt).reduce((s,b)=>s+Number(b.amount||0),0)}
+function methodLabel(m){return ({pix:'Pix',debit:'Débito',cash:'Dinheiro',credit:'Cartão de crédito'})[m]||m}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function render(){
+ const key=monthKey(viewDate),prev=shiftMonth(viewDate,-1),prevKey=monthKey(prev),next=shiftMonth(viewDate,1);
+ document.getElementById('monthLabel').textContent=monthName(viewDate);
+ document.getElementById('monthInline').textContent=monthName(viewDate);
+ document.getElementById('balanceValue').textContent=fmt(state.balance);
+ document.getElementById('incomeValue').textContent=fmt(incomeTotal(key));
+ document.getElementById('expenseValue').textContent=fmt(pendingBillsTotal(key));
+ document.getElementById('cardValue').textContent=fmt(creditTotal(key));
+ const content=document.getElementById('txContent'),toggle=document.getElementById('toggleTx');
+ content.classList.toggle('hidden',txCollapsed);toggle.textContent=txCollapsed?'▼':'▲';toggle.setAttribute('aria-expanded',String(!txCollapsed));toggle.title=txCollapsed?'Mostrar lançamentos':'Minimizar lançamentos';
+ const list=document.getElementById('txList');list.innerHTML='';
+ const rows=[];
+ txForMonth(key).forEach(t=>rows.push({kind:'tx',createdAt:t.createdAt,data:t}));
+ billsForMonth(key).forEach(b=>rows.push({kind:'bill',createdAt:b.createdAt,data:b}));
+ rows.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+ if(!rows.length)list.innerHTML='<div class="empty">Nenhum lançamento neste mês.</div>';
+ rows.forEach(r=>{
+   const el=document.createElement('div');el.className='item'+(r.kind==='bill'&&r.data.paidAt?' paid-row':'');
+   if(r.kind==='tx'){const t=r.data;const isIncome=t.type==='income';el.innerHTML=`<div class="desc">${escapeHtml(t.desc)}<div class="small">${isIncome?'Receita':'Despesa'} · ${methodLabel(t.method)}</div></div><div class="small">${new Date(t.createdAt).toLocaleDateString('pt-BR')}</div><div class="small">${t.method==='credit'?'Fatura '+monthName(next):'Saldo imediato'}</div><div class="amount ${isIncome?'green':'red'}">${isIncome?'+':'-'} ${fmt(t.amount)}</div><button class="icon-btn" data-del-tx="${t.id}" title="Excluir">🗑️</button>`;}
+   else {const b=r.data;el.innerHTML=`<div class="desc">${escapeHtml(b.desc)}<div class="small">A pagar</div>${b.paidAt?'<span class="paid-chip">Paga ✓</span>':'<span class="pending-chip">Pendente</span>'}</div><div class="small">${b.paidAt?'Paga em '+new Date(b.paidAt).toLocaleDateString('pt-BR'):'Ainda não descontada do saldo'}</div><div class="small">Conta do mês</div><div class="amount ${b.paidAt?'green':'amber'}">${fmt(b.amount)}</div><div class="bill-actions">${b.paidAt?'':`<button class="btn btn-success" data-pay-bill="${b.id}">Pago</button>`}<button class="icon-btn" data-del-bill="${b.id}" title="Excluir">🗑️</button></div>`;}
+   list.appendChild(el);
+ });
+ list.querySelectorAll('[data-del-tx]').forEach(b=>b.onclick=()=>deleteTx(b.dataset.delTx));
+ list.querySelectorAll('[data-pay-bill]').forEach(b=>b.onclick=()=>payBill(b.dataset.payBill));
+ list.querySelectorAll('[data-del-bill]').forEach(b=>b.onclick=()=>deleteBill(b.dataset.delBill));
+ const invoice=creditTotal(prevKey),paid=!!state.paidInvoices[key];
+ document.getElementById('currentInvoiceValue').textContent=fmt(invoice);
+ document.getElementById('currentInvoiceHint').textContent=`Gastos no cartão de ${monthName(prev)}`;
+ const status=document.getElementById('invoiceStatus');status.textContent=paid?'Paga ✓':'Em aberto';status.className='badge '+(paid?'paid':'open');
+ const pay=document.getElementById('payInvoiceBtn');pay.disabled=paid||invoice<=0;pay.textContent=paid?'Fatura paga':'Pagar fatura';
+ document.getElementById('nextInvoiceValue').textContent=fmt(creditTotal(key));
+ document.getElementById('nextInvoiceHint').textContent=`Esses gastos serão a fatura atual em ${monthName(next)}.`;
+ const hist=document.getElementById('invoiceHistory');hist.innerHTML='';
+ const months=new Set(Object.keys(state.paidInvoices));state.transactions.filter(t=>t.method==='credit').forEach(t=>months.add(monthKey(shiftMonth(new Date(t.month+'-01T00:00:00'),1))));
+ const arr=[...months].sort().reverse();if(!arr.length)hist.innerHTML='<div class="empty">Nenhuma fatura registrada ainda.</div>';
+ arr.forEach(k=>{const d=new Date(k+'-01T00:00:00'),src=shiftMonth(d,-1),val=creditTotal(monthKey(src)),p=!!state.paidInvoices[k];const el=document.createElement('div');el.className='item';el.innerHTML=`<div class="desc">${monthName(d)}<div class="small">Referente a ${monthName(src)}</div></div><div class="small">${p?'Paga':'Em aberto'}</div><div class="small"></div><div class="amount">${fmt(val)}</div><div class="badge ${p?'paid':'open'}">${p?'Paga':'Aberta'}</div>`;hist.appendChild(el)});
+}
+function deleteTx(id){const t=state.transactions.find(x=>x.id===id);if(!t)return;if(!confirm('Excluir este lançamento?'))return;if(t.method!=='credit'){if(t.type==='expense')state.balance+=Number(t.amount||0);else if(t.type==='income')state.balance-=Number(t.amount||0)}state.transactions=state.transactions.filter(x=>x.id!==id);save();}
+function payBill(id){const b=state.bills.find(x=>x.id===id);if(!b||b.paidAt)return;if(!confirm(`Marcar ${b.desc} como paga por ${fmt(b.amount)}? O valor será descontado do Total em conta.`))return;state.balance-=Number(b.amount||0);b.paidAt=Date.now();save();}
+function deleteBill(id){const b=state.bills.find(x=>x.id===id);if(!b)return;const msg=b.paidAt?'Esta conta já foi paga. Ao excluir, o valor será devolvido ao Total em conta. Continuar?':'Excluir esta conta pendente?';if(!confirm(msg))return;if(b.paidAt)state.balance+=Number(b.amount||0);state.bills=state.bills.filter(x=>x.id!==id);save();}
+document.getElementById('addBtn').onclick=()=>{const desc=document.getElementById('desc').value.trim(),amount=Number(document.getElementById('amount').value),type=document.getElementById('type').value,method=document.getElementById('method').value;if(!desc||!amount||amount<=0)return alert('Preencha descrição e valor.');const k=monthKey(viewDate);if(type==='payable'){state.bills.push({id:uid(),desc,amount,dueDate:'',month:k,createdAt:Date.now(),paidAt:null})}else{const tx={id:uid(),desc,amount,type,method,month:k,createdAt:Date.now()};state.transactions.push(tx);if(method!=='credit'){if(type==='expense')state.balance-=amount;else state.balance+=amount}}document.getElementById('desc').value='';document.getElementById('amount').value='';save();};
+document.getElementById('type').onchange=e=>{const method=document.getElementById('method');if(e.target.value==='income'){method.value='pix';method.disabled=true}else if(e.target.value==='payable'){method.value='pix';method.disabled=true}else method.disabled=false};
+document.getElementById('toggleTx').onclick=()=>{txCollapsed=!txCollapsed;localStorage.setItem(COLLAPSE_KEY,txCollapsed?'1':'0');render();};
+document.getElementById('prevMonth').onclick=()=>{viewDate=shiftMonth(viewDate,-1);render()};document.getElementById('nextMonth').onclick=()=>{viewDate=shiftMonth(viewDate,1);render()};
+document.getElementById('payInvoiceBtn').onclick=()=>{const k=monthKey(viewDate),prevKey=monthKey(shiftMonth(viewDate,-1)),val=creditTotal(prevKey);if(state.paidInvoices[k]||val<=0)return;if(!confirm(`Pagar a fatura de ${fmt(val)}? O valor será descontado do Total em conta.`))return;state.balance-=val;state.paidInvoices[k]={paidAt:Date.now(),amount:val};state.invoicePayments.push({id:String(Date.now()),invoiceMonth:k,sourceMonth:prevKey,amount:val,paidAt:Date.now()});save();};
+const modal=document.getElementById('balanceModal');document.getElementById('editBalance').onclick=()=>{document.getElementById('balanceInput').value=state.balance;modal.classList.add('open')};document.getElementById('cancelBalance').onclick=()=>modal.classList.remove('open');document.getElementById('saveBalance').onclick=()=>{state.balance=Number(document.getElementById('balanceInput').value)||0;modal.classList.remove('open');save()};
+document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='minhas-financas-backup.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d.balance==='undefined'||!Array.isArray(d.transactions))throw 0;state=d;state.transactions=Array.isArray(state.transactions)?state.transactions:[];state.paidInvoices=state.paidInvoices||{};state.invoicePayments=Array.isArray(state.invoicePayments)?state.invoicePayments:[];state.bills=Array.isArray(state.bills)?state.bills:[];save();alert('Dados importados com sucesso.')}catch{alert('Arquivo inválido.')}};r.readAsText(f)};
+initAuth();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));}</script>
+</body></html>
