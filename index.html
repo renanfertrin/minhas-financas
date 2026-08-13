@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#111827">
 
 <link rel="manifest" href="./manifest.webmanifest">
-
 <link rel="apple-touch-icon" href="./icon-192.png">
 
 <meta name="mobile-web-app-capable" content="yes">
@@ -29,6 +28,7 @@
   --red:#dc2626;
   --blue:#2563eb;
   --amber:#d97706;
+  --purple:#4f46e5;
 }
 
 *{box-sizing:border-box}
@@ -190,6 +190,11 @@ body{
   color:#fff;
 }
 
+.btn-warning{
+  background:#fef3c7;
+  color:#92400e;
+}
+
 .btn-muted{
   background:#f3f4f6;
   color:#111827;
@@ -210,7 +215,9 @@ body{
   min-width:42px;
 }
 
-.collapsible.hidden{display:none}
+.collapsible.hidden{
+  display:none;
+}
 
 .list{
   display:flex;
@@ -238,7 +245,6 @@ body{
 }
 
 .item.paid-row{
-  opacity:.76;
   background:#f9fafb;
 }
 
@@ -265,6 +271,7 @@ body{
 
 .repeat-icon{
   background:#eef2ff;
+  color:#3730a3;
 }
 
 .pending-chip,.paid-chip{
@@ -367,7 +374,9 @@ body{
   z-index:5000;
 }
 
-.modal.open{display:flex}
+.modal.open{
+  display:flex;
+}
 
 .modal-card{
   background:#fff;
@@ -411,9 +420,7 @@ body{
   box-shadow:0 14px 45px rgba(17,24,39,.12);
 }
 
-.auth-card h1{
-  margin:0 0 6px;
-}
+.auth-card h1{margin:0 0 6px}
 
 .auth-card p{
   margin:0 0 18px;
@@ -458,7 +465,7 @@ body{
     grid-template-columns:1fr auto;
   }
 
-  .item>:not(.desc):not(.amount):not(.icon-btn):not(.bill-actions):not(.item-actions){
+  .item>:not(.desc):not(.amount):not(.item-actions):not(.bill-actions){
     display:none;
   }
 
@@ -473,6 +480,15 @@ body{
   .form{grid-template-columns:1fr}
   .month-label{min-width:120px}
   .app{padding:12px 12px 96px}
+
+  .item-actions,.bill-actions{
+    gap:4px;
+  }
+
+  .item-actions button,.bill-actions button{
+    padding:8px;
+    font-size:12px;
+  }
 }
 </style>
 </head>
@@ -480,219 +496,441 @@ body{
 <body>
 
 <div class="auth-screen" id="authScreen">
+
   <div class="auth-card">
+
     <h1>Minhas Finanças</h1>
-    <p>Entre para acessar e sincronizar seus dados.</p>
 
-    <input id="loginEmail" type="email" autocomplete="email" placeholder="E-mail">
-    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Senha">
+    <p>
+      Entre para acessar e sincronizar seus dados.
+    </p>
 
-    <button class="btn btn-primary" id="loginBtn">Entrar</button>
+    <input
+      id="loginEmail"
+      type="email"
+      autocomplete="email"
+      placeholder="E-mail"
+    >
 
-    <div class="auth-error" id="authError"></div>
-    <div class="auth-status" id="authStatus">Conectando ao Supabase…</div>
+    <input
+      id="loginPassword"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Senha"
+    >
+
+    <button
+      class="btn btn-primary"
+      id="loginBtn"
+    >
+      Entrar
+    </button>
+
+    <div
+      class="auth-error"
+      id="authError"
+    ></div>
+
+    <div
+      class="auth-status"
+      id="authStatus"
+    >
+      Conectando ao Supabase…
+    </div>
+
   </div>
+
 </div>
+
 
 <div class="app">
 
-<div class="top">
+  <div class="top">
 
-  <div class="title">
-    <h1>Minhas Finanças</h1>
-    <p>Controle pessoal de saldo, gastos e faturas</p>
-  </div>
+    <div class="title">
 
-  <div class="user-strip">
+      <h1>Minhas Finanças</h1>
 
-    <span class="user-email" id="userEmail"></span>
+      <p>
+        Controle pessoal de saldo, gastos e faturas
+      </p>
 
-    <button class="btn btn-muted" id="logoutBtn">
-      Sair
-    </button>
-
-    <div class="month-nav">
-      <button id="prevMonth">◀</button>
-      <div class="month-label" id="monthLabel"></div>
-      <button id="nextMonth">▶</button>
     </div>
 
-  </div>
 
-</div>
+    <div class="user-strip">
 
-<div class="grid">
+      <span
+        class="user-email"
+        id="userEmail"
+      ></span>
 
-  <div class="card metric">
-    <div class="label">Total em conta</div>
-    <div class="value blue" id="balanceValue">R$ 0,00</div>
-    <div class="sub">
-      <button class="icon-btn" id="editBalance">Editar saldo</button>
-    </div>
-  </div>
-
-  <div class="card metric">
-    <div class="label">Receitas do mês</div>
-    <div class="value green" id="incomeValue">R$ 0,00</div>
-    <div class="sub">Entradas registradas</div>
-  </div>
-
-  <div class="card metric">
-    <div class="label">Saldo pendente do mês</div>
-    <div class="value amber" id="expenseValue">R$ 0,00</div>
-    <div class="sub">Contas + fatura ainda não pagas</div>
-  </div>
-
-  <div class="card metric">
-    <div class="label">Gastos no cartão</div>
-    <div class="value amber" id="cardValue">R$ 0,00</div>
-    <div class="sub">Fatura do próximo mês</div>
-  </div>
-
-</div>
-
-<div class="section card">
-
-  <h2>Novo lançamento</h2>
-
-  <div class="form">
-
-    <input
-      class="wide"
-      id="desc"
-      placeholder="Descrição (ex.: Mercado)"
-    >
-
-    <input
-      id="amount"
-      type="number"
-      min="0"
-      step="0.01"
-      placeholder="Valor"
-    >
-
-    <select id="type">
-      <option value="expense">Despesa</option>
-      <option value="income">Receita</option>
-      <option value="payable">A pagar</option>
-    </select>
-
-    <select id="method">
-      <option value="pix">Pix</option>
-      <option value="debit">Débito</option>
-      <option value="cash">Dinheiro</option>
-      <option value="credit">Cartão de crédito</option>
-    </select>
-
-    <button class="btn btn-primary" id="addBtn">
-      Adicionar
-    </button>
-
-  </div>
-
-</div>
-
-<div class="two section">
-
-  <div class="card">
-
-    <div class="section-head">
-
-      <h2>
-        Lançamentos de
-        <span id="monthInline"></span>
-      </h2>
-
-      <button class="collapse-btn" id="toggleTx">
-        ▲
+      <button
+        class="btn btn-muted"
+        id="logoutBtn"
+      >
+        Sair
       </button>
 
-    </div>
 
-    <div class="collapsible" id="txContent">
-      <div class="list" id="txList"></div>
-    </div>
+      <div class="month-nav">
 
-  </div>
+        <button id="prevMonth">
+          ◀
+        </button>
 
-  <div class="invoice-box">
+        <div
+          class="month-label"
+          id="monthLabel"
+        ></div>
 
-    <div class="card">
-
-      <div class="invoice-head">
-
-        <div>
-          <div class="label">Fatura atual</div>
-          <div class="hint" id="currentInvoiceHint"></div>
-        </div>
-
-        <div class="badge open" id="invoiceStatus">
-          Em aberto
-        </div>
+        <button id="nextMonth">
+          ▶
+        </button>
 
       </div>
 
-      <div class="invoice-value" id="currentInvoiceValue">
+    </div>
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="card metric">
+
+      <div class="label">
+        Total em conta
+      </div>
+
+      <div
+        class="value blue"
+        id="balanceValue"
+      >
         R$ 0,00
       </div>
 
-      <button class="btn btn-success" id="payInvoiceBtn">
-        Pagar fatura
-      </button>
+      <div class="sub">
 
-      <div class="hint">
-        Enquanto estiver aberta, a fatura também entra no Saldo pendente do mês.
+        <button
+          class="icon-btn"
+          id="editBalance"
+        >
+          Editar saldo
+        </button>
+
       </div>
 
     </div>
 
-    <div class="card">
+
+    <div class="card metric">
 
       <div class="label">
+        Receitas do mês
+      </div>
+
+      <div
+        class="value green"
+        id="incomeValue"
+      >
+        R$ 0,00
+      </div>
+
+      <div class="sub">
+        Entradas registradas
+      </div>
+
+    </div>
+
+
+    <div class="card metric">
+
+      <div class="label">
+        Saldo pendente do mês
+      </div>
+
+      <div
+        class="value amber"
+        id="pendingValue"
+      >
+        R$ 0,00
+      </div>
+
+      <div class="sub">
+        Contas + fatura ainda não pagas
+      </div>
+
+    </div>
+
+
+    <div class="card metric">
+
+      <div class="label">
+        Gastos no cartão
+      </div>
+
+      <div
+        class="value amber"
+        id="cardValue"
+      >
+        R$ 0,00
+      </div>
+
+      <div class="sub">
         Fatura do próximo mês
       </div>
 
-      <div class="invoice-value amber" id="nextInvoiceValue">
-        R$ 0,00
-      </div>
+    </div>
 
-      <div class="hint" id="nextInvoiceHint"></div>
+  </div>
+
+
+  <div class="section card">
+
+    <h2>
+      Novo lançamento
+    </h2>
+
+
+    <div class="form">
+
+      <input
+        class="wide"
+        id="desc"
+        placeholder="Descrição (ex.: Mercado)"
+      >
+
+
+      <input
+        id="amount"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Valor"
+      >
+
+
+      <select id="type">
+
+        <option value="expense">
+          Despesa
+        </option>
+
+        <option value="income">
+          Receita
+        </option>
+
+        <option value="payable">
+          A pagar
+        </option>
+
+      </select>
+
+
+      <select id="method">
+
+        <option value="pix">
+          Pix
+        </option>
+
+        <option value="debit">
+          Débito
+        </option>
+
+        <option value="cash">
+          Dinheiro
+        </option>
+
+        <option value="credit">
+          Cartão de crédito
+        </option>
+
+      </select>
+
+
+      <button
+        class="btn btn-primary"
+        id="addBtn"
+      >
+        Adicionar
+      </button>
 
     </div>
 
   </div>
 
+
+  <div class="two section">
+
+
+    <div class="card">
+
+      <div class="section-head">
+
+        <h2>
+          Lançamentos de
+          <span id="monthInline"></span>
+        </h2>
+
+        <button
+          class="collapse-btn"
+          id="toggleTx"
+        >
+          ▲
+        </button>
+
+      </div>
+
+
+      <div
+        class="collapsible"
+        id="txContent"
+      >
+
+        <div
+          class="list"
+          id="txList"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+    <div class="invoice-box">
+
+
+      <div class="card">
+
+        <div class="invoice-head">
+
+          <div>
+
+            <div class="label">
+              Fatura atual
+            </div>
+
+            <div
+              class="hint"
+              id="currentInvoiceHint"
+            ></div>
+
+          </div>
+
+
+          <div
+            class="badge open"
+            id="invoiceStatus"
+          >
+            Em aberto
+          </div>
+
+        </div>
+
+
+        <div
+          class="invoice-value"
+          id="currentInvoiceValue"
+        >
+          R$ 0,00
+        </div>
+
+
+        <button
+          class="btn btn-success"
+          id="payInvoiceBtn"
+        >
+          Pagar fatura
+        </button>
+
+
+        <div class="hint">
+
+          Enquanto estiver aberta,
+          a fatura também entra no
+          Saldo pendente do mês.
+
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="label">
+          Fatura do próximo mês
+        </div>
+
+        <div
+          class="invoice-value amber"
+          id="nextInvoiceValue"
+        >
+          R$ 0,00
+        </div>
+
+        <div
+          class="hint"
+          id="nextInvoiceHint"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="section card">
+
+    <h2>
+      Histórico de faturas
+    </h2>
+
+    <div
+      class="list"
+      id="invoiceHistory"
+    ></div>
+
+  </div>
+
 </div>
 
-<div class="section card">
-
-  <h2>Histórico de faturas</h2>
-
-  <div class="list" id="invoiceHistory"></div>
-
-</div>
-
-</div>
 
 <div class="footerbar">
 
   <div class="inner">
 
-    <button class="btn btn-muted" id="exportBtn">
+    <button
+      class="btn btn-muted"
+      id="exportBtn"
+    >
       Exportar dados
     </button>
 
-    <button class="btn btn-muted" id="importBtn">
+    <button
+      class="btn btn-muted"
+      id="importBtn"
+    >
       Importar dados
     </button>
 
-    <input type="file" id="importFile" accept="application/json" hidden>
+    <input
+      type="file"
+      id="importFile"
+      accept="application/json"
+      hidden
+    >
 
   </div>
 
 </div>
 
-<div class="modal" id="balanceModal">
+
+<div
+  class="modal"
+  id="balanceModal"
+>
 
   <div class="modal-card">
 
@@ -701,15 +939,34 @@ body{
       <span id="balanceModalMonth"></span>
     </h2>
 
-    <input id="balanceInput" type="number" step="0.01">
+    <div class="hint">
+
+      O valor informado será considerado
+      o saldo atual desse mês.
+      Os próximos lançamentos continuarão
+      somando ou subtraindo normalmente.
+
+    </div>
+
+    <input
+      id="balanceInput"
+      type="number"
+      step="0.01"
+    >
 
     <div class="row">
 
-      <button class="btn btn-muted" id="cancelBalance">
+      <button
+        class="btn btn-muted"
+        id="cancelBalance"
+      >
         Cancelar
       </button>
 
-      <button class="btn btn-primary" id="saveBalance">
+      <button
+        class="btn btn-primary"
+        id="saveBalance"
+      >
         Salvar
       </button>
 
@@ -719,11 +976,12 @@ body{
 
 </div>
 
+
 <script>
 
-/* ===============================
+/* =====================================================
    SUPABASE
-=============================== */
+===================================================== */
 
 const SUPABASE_URL =
 'https://skwygbahzutobygkvavw.supabase.co';
@@ -738,158 +996,73 @@ window.supabase.createClient(
 );
 
 
-/* ===============================
-   ESTADO
-=============================== */
+/* =====================================================
+   CONFIGURAÇÕES
+===================================================== */
 
-const KEY =
-'minhas_financas_v3';
+const STORAGE_KEY =
+'minhas_financas_v4';
 
-const OLD_KEY =
-'minhas_financas_v2';
+const OLD_STORAGE_KEYS = [
+  'minhas_financas_v3',
+  'minhas_financas_v2'
+];
 
 const COLLAPSE_KEY =
 'minhas_financas_tx_collapsed';
 
 
 const DEFAULT_STATE = {
-  balances:{},
+
+  /*
+  balances agora guarda o SALDO INICIAL
+  de um determinado mês.
+
+  Exemplo:
+  agosto pode ser o mês-base.
+
+  Setembro sem saldo definido
+  automaticamente começa com
+  o saldo FINAL de agosto.
+  */
+
+  balances:{
+    _model:'opening_v1'
+  },
+
   transactions:[],
+
+  bills:[],
+
   paidInvoices:{},
-  invoicePayments:[],
-  bills:[]
+
+  invoicePayments:[]
+
 };
 
 
 function clone(obj){
-  return JSON.parse(JSON.stringify(obj));
-}
 
-
-function loadInitialState(){
-
-  const current =
-  JSON.parse(
-    localStorage.getItem(KEY) || 'null'
+  return JSON.parse(
+    JSON.stringify(obj)
   );
-
-  if(current){
-    return current;
-  }
-
-
-  const old =
-  JSON.parse(
-    localStorage.getItem(OLD_KEY) || 'null'
-  );
-
-
-  if(old){
-
-    const migrated = {
-      balances:{},
-      transactions:
-        Array.isArray(old.transactions)
-        ? old.transactions
-        : [],
-      paidInvoices:
-        old.paidInvoices || {},
-      invoicePayments:
-        Array.isArray(old.invoicePayments)
-        ? old.invoicePayments
-        : [],
-      bills:
-        Array.isArray(old.bills)
-        ? old.bills
-        : []
-    };
-
-
-    if(
-      typeof old.balance !== 'undefined'
-    ){
-
-      migrated.balances['2026-08'] =
-      Number(old.balance || 0);
-
-    }
-
-
-    return migrated;
-
-  }
-
-
-  return clone(DEFAULT_STATE);
 
 }
 
 
-let state =
-loadInitialState();
-
-
-state.balances =
-state.balances || {};
-
-state.transactions =
-Array.isArray(state.transactions)
-? state.transactions
-: [];
-
-state.paidInvoices =
-state.paidInvoices || {};
-
-state.invoicePayments =
-Array.isArray(state.invoicePayments)
-? state.invoicePayments
-: [];
-
-state.bills =
-Array.isArray(state.bills)
-? state.bills
-: [];
-
-
-/*
-Abre automaticamente no mês atual.
-Hoje: agosto de 2026.
-*/
-
-const today =
-new Date();
-
-let viewDate =
-new Date(
-  today.getFullYear(),
-  today.getMonth(),
-  1
-);
-
-
-let txCollapsed =
-localStorage.getItem(COLLAPSE_KEY) === '1';
-
-let currentUser = null;
-
-let syncBusy = false;
-
-let syncQueued = false;
-
-
-/* ===============================
+/* =====================================================
    DATAS
-=============================== */
+===================================================== */
 
-function monthKey(d){
+function monthKey(date){
 
   return (
-    d.getFullYear()
+    date.getFullYear()
     +
     '-'
     +
     String(
-      d.getMonth()+1
+      date.getMonth()+1
     ).padStart(2,'0')
   );
 
@@ -898,12 +1071,13 @@ function monthKey(d){
 
 function dateFromMonthKey(key){
 
-  const [year,month] =
-  key.split('-').map(Number);
+  const parts =
+  key.split('-')
+  .map(Number);
 
   return new Date(
-    year,
-    month-1,
+    parts[0],
+    parts[1]-1,
     1
   );
 
@@ -921,18 +1095,6 @@ function shiftMonth(date,amount){
 }
 
 
-function nextMonthKey(key){
-
-  return monthKey(
-    shiftMonth(
-      dateFromMonthKey(key),
-      1
-    )
-  );
-
-}
-
-
 function previousMonthKey(key){
 
   return monthKey(
@@ -945,9 +1107,22 @@ function previousMonthKey(key){
 }
 
 
+function nextMonthKey(key){
+
+  return monthKey(
+    shiftMonth(
+      dateFromMonthKey(key),
+      1
+    )
+  );
+
+}
+
+
 function monthName(date){
 
-  const meses = [
+  const months = [
+
     'Janeiro',
     'Fevereiro',
     'Março',
@@ -960,11 +1135,14 @@ function monthName(date){
     'Outubro',
     'Novembro',
     'Dezembro'
+
   ];
 
 
   return (
-    meses[date.getMonth()]
+    months[
+      date.getMonth()
+    ]
     +
     ' de '
     +
@@ -974,9 +1152,9 @@ function monthName(date){
 }
 
 
-/* ===============================
-   FORMATAÇÃO
-=============================== */
+/* =====================================================
+   FORMATADORES
+===================================================== */
 
 function fmt(value){
 
@@ -995,9 +1173,16 @@ function fmt(value){
 
 function uid(){
 
-  if(crypto.randomUUID){
+  if(
+    window.crypto
+    &&
+    crypto.randomUUID
+  ){
+
     return crypto.randomUUID();
+
   }
+
 
   return (
     Date.now()
@@ -1012,18 +1197,22 @@ function uid(){
 }
 
 
-function escapeHtml(text){
+function esc(text){
 
-  return String(text)
+  return String(
+    text ?? ''
+  )
   .replace(
     /[&<>'"]/g,
-    char=>({
+    c=>({
+
       '&':'&amp;',
       '<':'&lt;',
       '>':'&gt;',
       "'":'&#39;',
       '"':'&quot;'
-    }[char])
+
+    }[c])
   );
 
 }
@@ -1032,81 +1221,161 @@ function escapeHtml(text){
 function methodLabel(method){
 
   const labels = {
+
     pix:'Pix',
     debit:'Débito',
     cash:'Dinheiro',
     credit:'Cartão de crédito'
+
   };
 
-  return labels[method] || method;
+
+  return (
+    labels[method]
+    ||
+    method
+  );
 
 }
 
 
-/* ===============================
-   SALDOS MENSAIS
-=============================== */
+/* =====================================================
+   ESTADO
+===================================================== */
 
-/*
-Se o mês ainda não tiver saldo próprio,
-ele recebe o saldo do mês anterior.
+function normalizeState(data){
 
-Depois disso ele vira independente.
-*/
+  data =
+  data || {};
 
-function ensureMonthBalance(key){
 
-  if(
-    Object.prototype.hasOwnProperty.call(
-      state.balances,
-      key
+  return {
+
+    balances:
+      data.balances
+      &&
+      typeof data.balances === 'object'
+      ?
+      data.balances
+      :
+      {},
+
+    transactions:
+      Array.isArray(
+        data.transactions
+      )
+      ?
+      data.transactions
+      :
+      [],
+
+    bills:
+      Array.isArray(
+        data.bills
+      )
+      ?
+      data.bills
+      :
+      [],
+
+    paidInvoices:
+      data.paidInvoices
+      &&
+      typeof data.paidInvoices === 'object'
+      ?
+      data.paidInvoices
+      :
+      {},
+
+    invoicePayments:
+      Array.isArray(
+        data.invoicePayments
+      )
+      ?
+      data.invoicePayments
+      :
+      []
+
+  };
+
+}
+
+
+function loadLocalState(){
+
+  let current =
+  JSON.parse(
+    localStorage.getItem(
+      STORAGE_KEY
     )
-  ){
+    ||
+    'null'
+  );
 
-    return Number(
-      state.balances[key] || 0
+
+  if(current){
+
+    return normalizeState(
+      current
     );
 
   }
 
 
-  const previousKey =
-  previousMonthKey(key);
-
-
-  let base = 0;
-
-
-  if(
-    Object.prototype.hasOwnProperty.call(
-      state.balances,
-      previousKey
-    )
+  for(
+    const oldKey
+    of OLD_STORAGE_KEYS
   ){
 
-    base =
-    Number(
-      state.balances[previousKey] || 0
+    const old =
+    JSON.parse(
+      localStorage.getItem(
+        oldKey
+      )
+      ||
+      'null'
     );
 
-  }
 
-  else{
+    if(old){
 
-    const earlier =
-    Object.keys(state.balances)
-    .filter(k=>k < key)
-    .sort()
-    .reverse();
+      /*
+      VERSÃO ANTIGA COM balance ÚNICO
+      */
+
+      if(
+        typeof old.balance !==
+        'undefined'
+      ){
+
+        return normalizeState({
+
+          balances:{
+            '2026-08':
+            Number(
+              old.balance || 0
+            )
+          },
+
+          transactions:
+          old.transactions,
+
+          bills:
+          old.bills,
+
+          paidInvoices:
+          old.paidInvoices,
+
+          invoicePayments:
+          old.invoicePayments
+
+        });
+
+      }
 
 
-    if(earlier.length){
-
-      base =
-      Number(
-        state.balances[
-          earlier[0]
-        ] || 0
+      return normalizeState(
+        old
       );
 
     }
@@ -1114,62 +1383,50 @@ function ensureMonthBalance(key){
   }
 
 
-  state.balances[key] =
-  base;
-
-
-  return base;
-
-}
-
-
-function getMonthBalance(key){
-
-  return ensureMonthBalance(key);
-
-}
-
-
-function setMonthBalance(key,value){
-
-  state.balances[key] =
-  Number(value || 0);
-
-}
-
-
-function addToMonthBalance(key,value){
-
-  setMonthBalance(
-    key,
-    getMonthBalance(key)
-    +
-    Number(value || 0)
+  return clone(
+    DEFAULT_STATE
   );
 
 }
 
 
-function subtractFromMonthBalance(key,value){
-
-  setMonthBalance(
-    key,
-    getMonthBalance(key)
-    -
-    Number(value || 0)
-  );
-
-}
+let state =
+loadLocalState();
 
 
-/* ===============================
-   CÁLCULOS
-=============================== */
+let currentUser = null;
+
+let syncBusy = false;
+
+let syncQueued = false;
+
+
+const today =
+new Date();
+
+
+let viewDate =
+new Date(
+  today.getFullYear(),
+  today.getMonth(),
+  1
+);
+
+
+let txCollapsed =
+localStorage.getItem(
+  COLLAPSE_KEY
+) === '1';
+
+
+/* =====================================================
+   CONSULTAS
+===================================================== */
 
 function txForMonth(key){
 
   return state.transactions.filter(
-    t=>t.month === key
+    x=>x.month === key
   );
 
 }
@@ -1178,7 +1435,7 @@ function txForMonth(key){
 function billsForMonth(key){
 
   return state.bills.filter(
-    b=>b.month === key
+    x=>x.month === key
   );
 
 }
@@ -1187,12 +1444,34 @@ function billsForMonth(key){
 function incomeTotal(key){
 
   return txForMonth(key)
+
   .filter(
-    t=>t.type === 'income'
+    x=>x.type === 'income'
   )
+
   .reduce(
-    (sum,t)=>
-    sum + Number(t.amount || 0),
+    (sum,x)=>
+    sum + Number(x.amount || 0),
+    0
+  );
+
+}
+
+
+function immediateExpensesTotal(key){
+
+  return txForMonth(key)
+
+  .filter(
+    x=>
+      x.type === 'expense'
+      &&
+      x.method !== 'credit'
+  )
+
+  .reduce(
+    (sum,x)=>
+    sum + Number(x.amount || 0),
     0
   );
 
@@ -1202,15 +1481,34 @@ function incomeTotal(key){
 function creditTotal(key){
 
   return txForMonth(key)
+
   .filter(
-    t=>
-    t.type === 'expense'
-    &&
-    t.method === 'credit'
+    x=>
+      x.type === 'expense'
+      &&
+      x.method === 'credit'
   )
+
   .reduce(
-    (sum,t)=>
-    sum + Number(t.amount || 0),
+    (sum,x)=>
+    sum + Number(x.amount || 0),
+    0
+  );
+
+}
+
+
+function paidBillsTotal(key){
+
+  return billsForMonth(key)
+
+  .filter(
+    x=>!!x.paidAt
+  )
+
+  .reduce(
+    (sum,x)=>
+    sum + Number(x.amount || 0),
     0
   );
 
@@ -1220,12 +1518,31 @@ function creditTotal(key){
 function pendingBillsTotal(key){
 
   return billsForMonth(key)
+
   .filter(
-    b=>!b.paidAt
+    x=>!x.paidAt
   )
+
   .reduce(
-    (sum,b)=>
-    sum + Number(b.amount || 0),
+    (sum,x)=>
+    sum + Number(x.amount || 0),
+    0
+  );
+
+}
+
+
+function invoicePaymentTotal(key){
+
+  return state.invoicePayments
+
+  .filter(
+    x=>x.invoiceMonth === key
+  )
+
+  .reduce(
+    (sum,x)=>
+    sum + Number(x.amount || 0),
     0
   );
 
@@ -1243,14 +1560,11 @@ function currentInvoiceTotal(key){
 
 function pendingInvoiceTotal(key){
 
-  if(
-    state.paidInvoices[key]
-  ){
-    return 0;
-  }
-
-
-  return currentInvoiceTotal(key);
+  return state.paidInvoices[key]
+    ?
+    0
+    :
+    currentInvoiceTotal(key);
 
 }
 
@@ -1266,23 +1580,294 @@ function totalPendingForMonth(key){
 }
 
 
-/* ===============================
-   LOCAL
-=============================== */
+/* =====================================================
+   MOVIMENTO FINANCEIRO DO MÊS
+===================================================== */
+
+/*
+Receita                +
+Despesa Pix/Débito      -
+Conta marcada como paga -
+Fatura paga             -
+
+Gastos no cartão NÃO diminuem
+o saldo no mês da compra.
+Só diminuem quando a fatura é paga.
+*/
+
+function monthCashFlow(key){
+
+  return (
+    incomeTotal(key)
+
+    -
+
+    immediateExpensesTotal(key)
+
+    -
+
+    paidBillsTotal(key)
+
+    -
+
+    invoicePaymentTotal(key)
+  );
+
+}
+
+
+/* =====================================================
+   MIGRAÇÃO DO MODELO ANTIGO DE SALDO
+===================================================== */
+
+function balanceMonthKeys(){
+
+  return Object
+  .keys(
+    state.balances || {}
+  )
+  .filter(
+    key=>
+    /^\d{4}-\d{2}$/
+    .test(key)
+  )
+  .sort();
+
+}
+
+
+function migrateBalanceModel(){
+
+  state.balances =
+  state.balances || {};
+
+
+  if(
+    state.balances._model ===
+    'opening_v1'
+  ){
+
+    return;
+
+  }
+
+
+  const keys =
+  balanceMonthKeys();
+
+
+  /*
+  Preferimos agosto/2026
+  porque é o mês-base usado
+  pelo aplicativo original.
+  */
+
+  let anchorKey = null;
+
+
+  if(
+    Object.prototype
+    .hasOwnProperty
+    .call(
+      state.balances,
+      '2026-08'
+    )
+  ){
+
+    anchorKey =
+    '2026-08';
+
+  }
+
+  else if(keys.length){
+
+    anchorKey =
+    keys[0];
+
+  }
+
+
+  const migrated = {
+    _model:'opening_v1'
+  };
+
+
+  if(anchorKey){
+
+    /*
+    Os saldos antigos representavam
+    o saldo FINAL.
+
+    No novo modelo precisamos descobrir
+    qual era o saldo INICIAL desse mês.
+
+    saldoInicial + fluxo = saldoFinal
+
+    então:
+
+    saldoInicial =
+    saldoFinal - fluxo
+    */
+
+    const oldFinal =
+    Number(
+      state.balances[
+        anchorKey
+      ]
+      ||
+      0
+    );
+
+
+    migrated[
+      anchorKey
+    ] =
+    oldFinal
+    -
+    monthCashFlow(
+      anchorKey
+    );
+
+  }
+
+
+  state.balances =
+  migrated;
+
+}
+
+
+/* =====================================================
+   SALDO DO MÊS
+===================================================== */
+
+function hasOpeningBalance(key){
+
+  return Object.prototype
+  .hasOwnProperty
+  .call(
+    state.balances,
+    key
+  );
+
+}
+
+
+function hasAnchorBeforeOrAt(key){
+
+  return balanceMonthKeys()
+  .some(
+    k=>k <= key
+  );
+
+}
+
+
+function getOpeningBalance(key){
+
+  /*
+  Saldo inicial definido manualmente.
+  */
+
+  if(
+    hasOpeningBalance(key)
+  ){
+
+    return Number(
+      state.balances[key]
+      ||
+      0
+    );
+
+  }
+
+
+  const previousKey =
+  previousMonthKey(key);
+
+
+  /*
+  Se ainda não existe nenhum mês-base
+  antes deste mês, começa do zero.
+  */
+
+  if(
+    !hasAnchorBeforeOrAt(
+      previousKey
+    )
+  ){
+
+    return 0;
+
+  }
+
+
+  /*
+  Caso normal:
+  saldo inicial deste mês =
+  saldo final do mês anterior.
+  */
+
+  return getMonthBalance(
+    previousKey
+  );
+
+}
+
+
+function getMonthBalance(key){
+
+  return (
+    getOpeningBalance(key)
+    +
+    monthCashFlow(key)
+  );
+
+}
+
+
+/*
+Quando o usuário edita o saldo,
+ele informa quanto quer ver AGORA.
+
+Então recalculamos o saldo inicial
+para que:
+
+saldoInicial + fluxoAtual = valorDigitado.
+*/
+
+function setDisplayedBalance(
+  key,
+  desiredBalance
+){
+
+  state.balances[key] =
+  Number(
+    desiredBalance || 0
+  )
+  -
+  monthCashFlow(key);
+
+}
+
+
+/* =====================================================
+   LOCAL STORAGE
+===================================================== */
 
 function localSave(){
 
   localStorage.setItem(
-    KEY,
+    STORAGE_KEY,
     JSON.stringify(state)
   );
 
 }
 
 
-/* ===============================
-   SINCRONIZAÇÃO
-=============================== */
+/* =====================================================
+   SUPABASE
+===================================================== */
 
 async function syncAll(){
 
@@ -1313,30 +1898,26 @@ async function syncAll(){
     currentUser.id;
 
 
-    const currentKey =
-    monthKey(viewDate);
-
-
-    let r =
+    let response =
     await sb
     .from('finance_settings')
     .upsert(
       {
+
         user_id:userId,
 
-        /*
-        Mantemos balance também
-        para compatibilidade.
-        */
-
         balance:
-        getMonthBalance(currentKey),
+        getMonthBalance(
+          monthKey(viewDate)
+        ),
 
         month_balances:
         state.balances,
 
         updated_at:
-        new Date().toISOString()
+        new Date()
+        .toISOString()
+
       },
       {
         onConflict:'user_id'
@@ -1344,8 +1925,8 @@ async function syncAll(){
     );
 
 
-    if(r.error){
-      throw r.error;
+    if(response.error){
+      throw response.error;
     }
 
 
@@ -1353,118 +1934,156 @@ async function syncAll(){
     TRANSAÇÕES
     */
 
-    r =
+    response =
     await sb
     .from('transactions')
     .delete()
-    .eq('user_id',userId);
+    .eq(
+      'user_id',
+      userId
+    );
 
 
-    if(r.error){
-      throw r.error;
+    if(response.error){
+      throw response.error;
     }
 
 
-    if(state.transactions.length){
+    if(
+      state.transactions.length
+    ){
 
       const rows =
-      state.transactions.map(t=>({
+      state.transactions
+      .map(
+        x=>({
 
-        id:t.id,
+          id:x.id,
 
-        user_id:userId,
+          user_id:
+          userId,
 
-        description:t.desc,
+          description:
+          x.desc,
 
-        amount:
-        Number(t.amount),
+          amount:
+          Number(x.amount),
 
-        type:t.type,
+          type:
+          x.type,
 
-        method:t.method,
+          method:
+          x.method,
 
-        month:t.month,
+          month:
+          x.month,
 
-        created_at:
-        new Date(
-          Number(t.createdAt) || Date.now()
-        ).toISOString()
+          created_at:
+          new Date(
+            Number(
+              x.createdAt
+            )
+            ||
+            Date.now()
+          )
+          .toISOString()
 
-      }));
+        })
+      );
 
 
-      r =
+      response =
       await sb
       .from('transactions')
       .insert(rows);
 
 
-      if(r.error){
-        throw r.error;
+      if(response.error){
+        throw response.error;
       }
 
     }
 
 
     /*
-    CONTAS A PAGAR
+    CONTAS
     */
 
-    r =
+    response =
     await sb
     .from('bills')
     .delete()
-    .eq('user_id',userId);
+    .eq(
+      'user_id',
+      userId
+    );
 
 
-    if(r.error){
-      throw r.error;
+    if(response.error){
+      throw response.error;
     }
 
 
-    if(state.bills.length){
+    if(
+      state.bills.length
+    ){
 
       const rows =
-      state.bills.map(b=>({
+      state.bills
+      .map(
+        x=>({
 
-        id:b.id,
+          id:x.id,
 
-        user_id:userId,
+          user_id:
+          userId,
 
-        description:b.desc,
+          description:
+          x.desc,
 
-        amount:Number(b.amount),
+          amount:
+          Number(x.amount),
 
-        due_date:
-        b.dueDate || null,
+          due_date:
+          x.dueDate
+          ||
+          null,
 
-        month:b.month,
+          month:
+          x.month,
 
-        paid_at:
-        b.paidAt
-        ?
-        new Date(
-          Number(b.paidAt)
-        ).toISOString()
-        :
-        null,
+          paid_at:
+          x.paidAt
+          ?
+          new Date(
+            Number(x.paidAt)
+          )
+          .toISOString()
+          :
+          null,
 
-        created_at:
-        new Date(
-          Number(b.createdAt) || Date.now()
-        ).toISOString()
+          created_at:
+          new Date(
+            Number(
+              x.createdAt
+            )
+            ||
+            Date.now()
+          )
+          .toISOString()
 
-      }));
+        })
+      );
 
 
-      r =
+      response =
       await sb
       .from('bills')
       .insert(rows);
 
 
-      if(r.error){
-        throw r.error;
+      if(response.error){
+        throw response.error;
       }
 
     }
@@ -1474,50 +2093,64 @@ async function syncAll(){
     FATURAS PAGAS
     */
 
-    r =
+    response =
     await sb
     .from('invoice_payments')
     .delete()
-    .eq('user_id',userId);
+    .eq(
+      'user_id',
+      userId
+    );
 
 
-    if(r.error){
-      throw r.error;
+    if(response.error){
+      throw response.error;
     }
 
 
-    if(state.invoicePayments.length){
+    if(
+      state.invoicePayments.length
+    ){
 
       const rows =
-      state.invoicePayments.map(x=>({
+      state.invoicePayments
+      .map(
+        x=>({
 
-        user_id:userId,
+          user_id:
+          userId,
 
-        invoice_month:
-        x.invoiceMonth,
+          invoice_month:
+          x.invoiceMonth,
 
-        source_month:
-        x.sourceMonth,
+          source_month:
+          x.sourceMonth,
 
-        amount:
-        Number(x.amount),
+          amount:
+          Number(x.amount),
 
-        paid_at:
-        new Date(
-          Number(x.paidAt) || Date.now()
-        ).toISOString()
+          paid_at:
+          new Date(
+            Number(
+              x.paidAt
+            )
+            ||
+            Date.now()
+          )
+          .toISOString()
 
-      }));
+        })
+      );
 
 
-      r =
+      response =
       await sb
       .from('invoice_payments')
       .insert(rows);
 
 
-      if(r.error){
-        throw r.error;
+      if(response.error){
+        throw response.error;
       }
 
     }
@@ -1527,22 +2160,25 @@ async function syncAll(){
 
   }
 
-  catch(err){
+  catch(error){
 
     console.error(
-      'Erro de sincronização:',
-      err
-    );
-
-
-    alert(
-      'Os dados foram salvos neste aparelho, mas houve erro ao sincronizar com o Supabase: '
-      +
-      (err.message || err)
+      error
     );
 
 
     localSave();
+
+
+    alert(
+      'Os dados ficaram salvos neste aparelho, mas ocorreu um erro ao sincronizar com o Supabase: '
+      +
+      (
+        error.message
+        ||
+        error
+      )
+    );
 
   }
 
@@ -1575,9 +2211,9 @@ function save(){
 }
 
 
-/* ===============================
-   CARREGAR DO SUPABASE
-=============================== */
+/* =====================================================
+   CARREGAR SUPABASE
+===================================================== */
 
 async function loadRemote(){
 
@@ -1586,62 +2222,91 @@ async function loadRemote(){
 
 
   const [
-    settingsRes,
-    txRes,
-    billsRes,
-    payRes
+    settings,
+    tx,
+    bills,
+    payments
   ] =
   await Promise.all([
 
     sb
-    .from('finance_settings')
+    .from(
+      'finance_settings'
+    )
     .select(
       'balance,month_balances'
     )
-    .eq('user_id',userId)
+    .eq(
+      'user_id',
+      userId
+    )
     .maybeSingle(),
 
     sb
-    .from('transactions')
+    .from(
+      'transactions'
+    )
     .select('*')
-    .eq('user_id',userId)
+    .eq(
+      'user_id',
+      userId
+    )
     .order(
       'created_at',
-      {ascending:true}
+      {
+        ascending:true
+      }
     ),
 
     sb
-    .from('bills')
+    .from(
+      'bills'
+    )
     .select('*')
-    .eq('user_id',userId)
+    .eq(
+      'user_id',
+      userId
+    )
     .order(
       'created_at',
-      {ascending:true}
+      {
+        ascending:true
+      }
     ),
 
     sb
-    .from('invoice_payments')
+    .from(
+      'invoice_payments'
+    )
     .select('*')
-    .eq('user_id',userId)
+    .eq(
+      'user_id',
+      userId
+    )
     .order(
       'paid_at',
-      {ascending:true}
+      {
+        ascending:true
+      }
     )
 
   ]);
 
 
   for(
-    const r of [
-      settingsRes,
-      txRes,
-      billsRes,
-      payRes
+    const response
+    of [
+      settings,
+      tx,
+      bills,
+      payments
     ]
   ){
 
-    if(r.error){
-      throw r.error;
+    if(response.error){
+
+      throw response.error;
+
     }
 
   }
@@ -1649,22 +2314,36 @@ async function loadRemote(){
 
   const hasRemote =
 
-  !!settingsRes.data
+    !!settings.data
 
-  ||
+    ||
 
-  (txRes.data?.length || 0) > 0
+    (
+      tx.data?.length
+      ||
+      0
+    ) > 0
 
-  ||
+    ||
 
-  (billsRes.data?.length || 0) > 0
+    (
+      bills.data?.length
+      ||
+      0
+    ) > 0
 
-  ||
+    ||
 
-  (payRes.data?.length || 0) > 0;
+    (
+      payments.data?.length
+      ||
+      0
+    ) > 0;
 
 
   if(!hasRemote){
+
+    migrateBalanceModel();
 
     await syncAll();
 
@@ -1674,73 +2353,42 @@ async function loadRemote(){
 
 
   /*
-  SALDOS
-  */
+  TRANSAÇÕES PRIMEIRO.
 
-  const remoteBalances =
-  settingsRes.data?.month_balances;
-
-
-  if(
-    remoteBalances
-    &&
-    typeof remoteBalances === 'object'
-    &&
-    Object.keys(remoteBalances).length
-  ){
-
-    state.balances =
-    remoteBalances;
-
-  }
-
-  else if(
-    settingsRes.data
-    &&
-    settingsRes.data.balance !== null
-  ){
-
-    /*
-    Migração automática:
-    saldo antigo vira saldo de agosto/2026.
-    */
-
-    state.balances = {
-      '2026-08':
-      Number(
-        settingsRes.data.balance || 0
-      )
-    };
-
-  }
-
-
-  /*
-  TRANSAÇÕES
+  A migração de saldo depende
+  dessas movimentações.
   */
 
   state.transactions =
-  (txRes.data || []).map(t=>({
+  (tx.data || [])
+  .map(
+    x=>({
 
-    id:t.id,
+      id:x.id,
 
-    desc:t.description,
+      desc:
+      x.description,
 
-    amount:
-    Number(t.amount),
+      amount:
+      Number(x.amount),
 
-    type:t.type,
+      type:
+      x.type,
 
-    method:t.method,
+      method:
+      x.method,
 
-    month:t.month,
+      month:
+      x.month,
 
-    createdAt:
-    new Date(
-      t.created_at
-    ).getTime()
+      createdAt:
+      new Date(
+        x.created_at
+      )
+      .getTime()
 
-  }));
+    })
+  );
 
 
   /*
@@ -1748,35 +2396,44 @@ async function loadRemote(){
   */
 
   state.bills =
-  (billsRes.data || []).map(b=>({
+  (bills.data || [])
+  .map(
+    x=>({
 
-    id:b.id,
+      id:x.id,
 
-    desc:b.description,
+      desc:
+      x.description,
 
-    amount:
-    Number(b.amount),
+      amount:
+      Number(x.amount),
 
-    dueDate:
-    b.due_date || '',
+      dueDate:
+      x.due_date
+      ||
+      '',
 
-    month:b.month,
+      month:
+      x.month,
 
-    paidAt:
-    b.paid_at
-    ?
-    new Date(
-      b.paid_at
-    ).getTime()
-    :
-    null,
+      paidAt:
+      x.paid_at
+      ?
+      new Date(
+        x.paid_at
+      )
+      .getTime()
+      :
+      null,
 
-    createdAt:
-    new Date(
-      b.created_at
-    ).getTime()
+      createdAt:
+      new Date(
+        x.created_at
+      )
+      .getTime()
 
-  }));
+    })
+  );
 
 
   /*
@@ -1784,57 +2441,120 @@ async function loadRemote(){
   */
 
   state.invoicePayments =
-  (payRes.data || []).map(x=>({
+  (payments.data || [])
+  .map(
+    x=>({
 
-    id:x.id,
+      id:
+      x.id,
 
-    invoiceMonth:
-    x.invoice_month,
+      invoiceMonth:
+      x.invoice_month,
 
-    sourceMonth:
-    x.source_month,
+      sourceMonth:
+      x.source_month,
 
-    amount:
-    Number(x.amount),
+      amount:
+      Number(x.amount),
 
-    paidAt:
-    new Date(
-      x.paid_at
-    ).getTime()
+      paidAt:
+      new Date(
+        x.paid_at
+      )
+      .getTime()
 
-  }));
+    })
+  );
 
 
   state.paidInvoices = {};
 
 
-  for(
-    const x of state.invoicePayments
+  state.invoicePayments
+  .forEach(
+    x=>{
+
+      state.paidInvoices[
+        x.invoiceMonth
+      ] = {
+
+        paidAt:
+        x.paidAt,
+
+        amount:
+        x.amount
+
+      };
+
+    }
+  );
+
+
+  /*
+  SALDO
+  */
+
+  if(
+    settings.data
+    &&
+    settings.data.month_balances
+    &&
+    typeof
+    settings.data.month_balances
+    === 'object'
+    &&
+    Object.keys(
+      settings.data.month_balances
+    ).length
   ){
 
-    state.paidInvoices[
-      x.invoiceMonth
-    ] = {
+    state.balances =
+    settings.data.month_balances;
 
-      paidAt:
-      x.paidAt,
+  }
 
-      amount:
-      x.amount
+  else if(
+    settings.data
+  ){
+
+    state.balances = {
+
+      '2026-08':
+      Number(
+        settings.data.balance
+        ||
+        0
+      )
 
     };
 
   }
 
 
+  /*
+  Converte automaticamente
+  a lógica antiga para a nova.
+  */
+
+  migrateBalanceModel();
+
+
   localSave();
+
+
+  /*
+  Já grava a versão convertida
+  no Supabase.
+  */
+
+  await syncAll();
 
 }
 
 
-/* ===============================
-   LOGIN
-=============================== */
+/* =====================================================
+   AUTENTICAÇÃO
+===================================================== */
 
 async function enterApp(session){
 
@@ -1843,9 +2563,13 @@ async function enterApp(session){
 
 
   document
-  .getElementById('userEmail')
+  .getElementById(
+    'userEmail'
+  )
   .textContent =
-  currentUser.email || '';
+  currentUser.email
+  ||
+  '';
 
 
   try{
@@ -1854,7 +2578,9 @@ async function enterApp(session){
 
 
     document
-    .getElementById('authScreen')
+    .getElementById(
+      'authScreen'
+    )
     .style.display =
     'none';
 
@@ -1863,14 +2589,20 @@ async function enterApp(session){
 
   }
 
-  catch(err){
+  catch(error){
 
     document
-    .getElementById('authError')
+    .getElementById(
+      'authError'
+    )
     .textContent =
-    'Erro ao carregar dados: '
+    'Erro ao carregar seus dados: '
     +
-    (err.message || err);
+    (
+      error.message
+      ||
+      error
+    );
 
   }
 
@@ -1880,20 +2612,30 @@ async function enterApp(session){
 async function initAuth(){
 
   const {
-    data:{session}
+    data:{
+      session
+    }
   } =
-  await sb.auth.getSession();
+  await sb
+  .auth
+  .getSession();
 
 
   if(session){
 
-    return enterApp(session);
+    await enterApp(
+      session
+    );
+
+    return;
 
   }
 
 
   document
-  .getElementById('authStatus')
+  .getElementById(
+    'authStatus'
+  )
   .textContent =
   'Entre com seu usuário.';
 
@@ -1901,34 +2643,46 @@ async function initAuth(){
 
 
 document
-.getElementById('loginBtn')
+.getElementById(
+  'loginBtn'
+)
 .onclick =
 async()=>{
 
   const email =
   document
-  .getElementById('loginEmail')
+  .getElementById(
+    'loginEmail'
+  )
   .value
   .trim();
 
 
   const password =
   document
-  .getElementById('loginPassword')
+  .getElementById(
+    'loginPassword'
+  )
   .value;
 
 
-  const errEl =
+  const errorBox =
   document
-  .getElementById('authError');
+  .getElementById(
+    'authError'
+  );
 
 
-  errEl.textContent = '';
+  errorBox.textContent = '';
 
 
-  if(!email || !password){
+  if(
+    !email
+    ||
+    !password
+  ){
 
-    errEl.textContent =
+    errorBox.textContent =
     'Digite seu e-mail e senha.';
 
     return;
@@ -1940,7 +2694,9 @@ async()=>{
     data,
     error
   } =
-  await sb.auth.signInWithPassword({
+  await sb
+  .auth
+  .signInWithPassword({
     email,
     password
   });
@@ -1948,7 +2704,7 @@ async()=>{
 
   if(error){
 
-    errEl.textContent =
+    errorBox.textContent =
     'Não foi possível entrar: '
     +
     error.message;
@@ -1966,15 +2722,22 @@ async()=>{
 
 
 document
-.getElementById('loginPassword')
+.getElementById(
+  'loginPassword'
+)
 .addEventListener(
   'keydown',
-  e=>{
+  event=>{
 
-    if(e.key === 'Enter'){
+    if(
+      event.key ===
+      'Enter'
+    ){
 
       document
-      .getElementById('loginBtn')
+      .getElementById(
+        'loginBtn'
+      )
       .click();
 
     }
@@ -1984,36 +2747,129 @@ document
 
 
 document
-.getElementById('logoutBtn')
+.getElementById(
+  'logoutBtn'
+)
 .onclick =
 async()=>{
 
-  await sb.auth.signOut();
+  await sb
+  .auth
+  .signOut();
 
   location.reload();
 
 };
 
 
-/* ===============================
-   REPETIR TRANSAÇÃO
-=============================== */
+/* =====================================================
+   REPETIR LANÇAMENTO
+===================================================== */
+
+function targetAlreadyExists(
+  description,
+  amount,
+  targetKey
+){
+
+  const normalized =
+  String(description)
+  .trim()
+  .toLowerCase();
+
+
+  const transactionExists =
+  state.transactions
+  .some(
+    x=>
+      x.month === targetKey
+      &&
+      String(
+        x.desc
+      )
+      .trim()
+      .toLowerCase()
+      === normalized
+      &&
+      Number(x.amount)
+      ===
+      Number(amount)
+  );
+
+
+  const billExists =
+  state.bills
+  .some(
+    x=>
+      x.month === targetKey
+      &&
+      String(
+        x.desc
+      )
+      .trim()
+      .toLowerCase()
+      === normalized
+      &&
+      Number(x.amount)
+      ===
+      Number(amount)
+  );
+
+
+  return (
+    transactionExists
+    ||
+    billExists
+  );
+
+}
+
+
+function confirmDuplicate(
+  description,
+  amount,
+  targetKey
+){
+
+  if(
+    !targetAlreadyExists(
+      description,
+      amount,
+      targetKey
+    )
+  ){
+
+    return true;
+
+  }
+
+
+  return confirm(
+    `Já existe um lançamento chamado "${description}" de ${fmt(amount)} nesse mês. Deseja repetir mesmo assim?`
+  );
+
+}
+
 
 function repeatTransaction(id){
 
-  const t =
+  const transaction =
   state.transactions.find(
     x=>x.id === id
   );
 
 
-  if(!t){
+  if(!transaction){
+
     return;
+
   }
 
 
   const targetKey =
-  nextMonthKey(t.month);
+  nextMonthKey(
+    transaction.month
+  );
 
 
   const targetName =
@@ -2026,7 +2882,20 @@ function repeatTransaction(id){
 
   if(
     !confirm(
-      `Repetir "${t.desc}" de ${fmt(t.amount)} em ${targetName}?`
+      `Repetir "${transaction.desc}" de ${fmt(transaction.amount)} em ${targetName}?`
+    )
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !confirmDuplicate(
+      transaction.desc,
+      transaction.amount,
+      targetKey
     )
   ){
 
@@ -2036,38 +2905,42 @@ function repeatTransaction(id){
 
 
   /*
-  GARANTE QUE O PRÓXIMO MÊS
-  COMEÇA COM O SALDO DO MÊS ANTERIOR.
-  */
+  RECEITAS
 
-  ensureMonthBalance(
-    targetKey
-  );
+  Só criamos a receita.
+  O saldo é calculado automaticamente,
+  então NÃO alteramos o saldo manualmente.
 
+  Setembro automaticamente será:
 
-  /*
-  RECEITA:
-  cria no próximo mês
-  E já acrescenta ao saldo daquele mês.
+  saldo final de agosto
+  +
+  receitas de setembro.
   */
 
   if(
-    t.type === 'income'
+    transaction.type ===
+    'income'
   ){
 
     state.transactions.push({
 
       id:uid(),
 
-      desc:t.desc,
+      desc:
+      transaction.desc,
 
       amount:
-      Number(t.amount),
+      Number(
+        transaction.amount
+      ),
 
       type:'income',
 
       method:
-      t.method || 'pix',
+      transaction.method
+      ||
+      'pix',
 
       month:
       targetKey,
@@ -2078,17 +2951,11 @@ function repeatTransaction(id){
     });
 
 
-    addToMonthBalance(
-      targetKey,
-      t.amount
-    );
-
-
     save();
 
 
     alert(
-      `Receita adicionada em ${targetName}.`
+      `Receita repetida para ${targetName}.`
     );
 
 
@@ -2098,23 +2965,25 @@ function repeatTransaction(id){
 
 
   /*
-  CARTÃO:
-  repete como gasto no cartão.
-  Não altera saldo imediatamente.
+  CARTÃO
   */
 
   if(
-    t.method === 'credit'
+    transaction.method ===
+    'credit'
   ){
 
     state.transactions.push({
 
       id:uid(),
 
-      desc:t.desc,
+      desc:
+      transaction.desc,
 
       amount:
-      Number(t.amount),
+      Number(
+        transaction.amount
+      ),
 
       type:'expense',
 
@@ -2143,18 +3012,23 @@ function repeatTransaction(id){
 
 
   /*
-  DESPESA NORMAL:
-  vira conta pendente.
+  DESPESA JÁ PAGA NO MÊS ANTERIOR
+
+  Ao repetir ela vira
+  "A pagar" no próximo mês.
   */
 
   state.bills.push({
 
     id:uid(),
 
-    desc:t.desc,
+    desc:
+    transaction.desc,
 
     amount:
-    Number(t.amount),
+    Number(
+      transaction.amount
+    ),
 
     dueDate:'',
 
@@ -2173,31 +3047,31 @@ function repeatTransaction(id){
 
 
   alert(
-    `Conta repetida para ${targetName}.`
+    `Conta repetida para ${targetName} como pendente.`
   );
 
 }
 
 
-/* ===============================
-   REPETIR CONTA
-=============================== */
-
 function repeatBill(id){
 
-  const b =
+  const bill =
   state.bills.find(
     x=>x.id === id
   );
 
 
-  if(!b){
+  if(!bill){
+
     return;
+
   }
 
 
   const targetKey =
-  nextMonthKey(b.month);
+  nextMonthKey(
+    bill.month
+  );
 
 
   const targetName =
@@ -2210,7 +3084,7 @@ function repeatBill(id){
 
   if(
     !confirm(
-      `Repetir "${b.desc}" de ${fmt(b.amount)} em ${targetName}?`
+      `Repetir "${bill.desc}" de ${fmt(bill.amount)} em ${targetName}?`
     )
   ){
 
@@ -2219,19 +3093,30 @@ function repeatBill(id){
   }
 
 
-  ensureMonthBalance(
-    targetKey
-  );
+  if(
+    !confirmDuplicate(
+      bill.desc,
+      bill.amount,
+      targetKey
+    )
+  ){
+
+    return;
+
+  }
 
 
   state.bills.push({
 
     id:uid(),
 
-    desc:b.desc,
+    desc:
+    bill.desc,
 
     amount:
-    Number(b.amount),
+    Number(
+      bill.amount
+    ),
 
     dueDate:'',
 
@@ -2256,33 +3141,193 @@ function repeatBill(id){
 }
 
 
-/* ===============================
-   RENDER
-=============================== */
+/* =====================================================
+   PAGAR / DESFAZER PAGAMENTO DE CONTA
+===================================================== */
+
+function toggleBillPaid(id){
+
+  const bill =
+  state.bills.find(
+    x=>x.id === id
+  );
+
+
+  if(!bill){
+
+    return;
+
+  }
+
+
+  /*
+  JÁ ESTAVA PAGA:
+  VOLTAR PARA PENDENTE.
+  */
+
+  if(bill.paidAt){
+
+    if(
+      !confirm(
+        `Voltar "${bill.desc}" para pendente? O valor de ${fmt(bill.amount)} voltará automaticamente para o Total em conta.`
+      )
+    ){
+
+      return;
+
+    }
+
+
+    bill.paidAt =
+    null;
+
+
+    save();
+
+
+    return;
+
+  }
+
+
+  /*
+  CONTA PENDENTE:
+  MARCAR COMO PAGA.
+  */
+
+  if(
+    !confirm(
+      `Marcar "${bill.desc}" como paga por ${fmt(bill.amount)}? O valor será descontado do Total em conta.`
+    )
+  ){
+
+    return;
+
+  }
+
+
+  bill.paidAt =
+  Date.now();
+
+
+  save();
+
+}
+
+
+/* =====================================================
+   EXCLUIR
+===================================================== */
+
+function deleteTransaction(id){
+
+  const transaction =
+  state.transactions.find(
+    x=>x.id === id
+  );
+
+
+  if(!transaction){
+
+    return;
+
+  }
+
+
+  if(
+    !confirm(
+      `Excluir "${transaction.desc}"?`
+    )
+  ){
+
+    return;
+
+  }
+
+
+  state.transactions =
+  state.transactions.filter(
+    x=>x.id !== id
+  );
+
+
+  /*
+  Como o saldo é calculado automaticamente,
+  excluir a receita/despesa também
+  recalcula o saldo automaticamente.
+  */
+
+  save();
+
+}
+
+
+function deleteBill(id){
+
+  const bill =
+  state.bills.find(
+    x=>x.id === id
+  );
+
+
+  if(!bill){
+
+    return;
+
+  }
+
+
+  const message =
+  bill.paidAt
+  ?
+  `Excluir "${bill.desc}"? Como ela estava paga, o valor voltará automaticamente para o saldo.`
+  :
+  `Excluir "${bill.desc}"?`;
+
+
+  if(
+    !confirm(message)
+  ){
+
+    return;
+
+  }
+
+
+  state.bills =
+  state.bills.filter(
+    x=>x.id !== id
+  );
+
+
+  save();
+
+}
+
+
+/* =====================================================
+   RENDERIZAÇÃO
+===================================================== */
 
 function render(){
 
   const key =
-  monthKey(viewDate);
+  monthKey(
+    viewDate
+  );
 
 
-  /*
-  Ao abrir um mês novo,
-  carrega saldo do mês anterior.
-  */
-
-  ensureMonthBalance(key);
-
-
-  const prev =
+  const previous =
   shiftMonth(
     viewDate,
     -1
   );
 
 
-  const prevKey =
-  monthKey(prev);
+  const previousKey =
+  monthKey(
+    previous
+  );
 
 
   const next =
@@ -2293,64 +3338,108 @@ function render(){
 
 
   document
-  .getElementById('monthLabel')
+  .getElementById(
+    'monthLabel'
+  )
   .textContent =
-  monthName(viewDate);
-
-
-  document
-  .getElementById('monthInline')
-  .textContent =
-  monthName(viewDate);
-
-
-  document
-  .getElementById('balanceValue')
-  .textContent =
-  fmt(
-    getMonthBalance(key)
+  monthName(
+    viewDate
   );
 
 
   document
-  .getElementById('incomeValue')
+  .getElementById(
+    'monthInline'
+  )
   .textContent =
-  fmt(
-    incomeTotal(key)
-  );
-
-
-  document
-  .getElementById('expenseValue')
-  .textContent =
-  fmt(
-    totalPendingForMonth(key)
-  );
-
-
-  document
-  .getElementById('cardValue')
-  .textContent =
-  fmt(
-    creditTotal(key)
+  monthName(
+    viewDate
   );
 
 
   /*
-  COLAPSAR
+  TOTAL EM CONTA
+
+  É CALCULADO AGORA.
+
+  Exemplo setembro:
+
+  saldo final agosto
+  +
+  salário setembro
+  -
+  contas pagas setembro
+  -
+  fatura paga setembro.
   */
 
-  const content =
   document
-  .getElementById('txContent');
+  .getElementById(
+    'balanceValue'
+  )
+  .textContent =
+  fmt(
+    getMonthBalance(
+      key
+    )
+  );
 
 
-  const toggle =
   document
-  .getElementById('toggleTx');
+  .getElementById(
+    'incomeValue'
+  )
+  .textContent =
+  fmt(
+    incomeTotal(
+      key
+    )
+  );
 
 
-  content
+  document
+  .getElementById(
+    'pendingValue'
+  )
+  .textContent =
+  fmt(
+    totalPendingForMonth(
+      key
+    )
+  );
+
+
+  document
+  .getElementById(
+    'cardValue'
+  )
+  .textContent =
+  fmt(
+    creditTotal(
+      key
+    )
+  );
+
+
+  /*
+  RECOLHER LISTA
+  */
+
+  const txContent =
+  document
+  .getElementById(
+    'txContent'
+  );
+
+
+  const toggleButton =
+  document
+  .getElementById(
+    'toggleTx'
+  );
+
+
+  txContent
   .classList
   .toggle(
     'hidden',
@@ -2358,19 +3447,23 @@ function render(){
   );
 
 
-  toggle.textContent =
+  toggleButton.textContent =
   txCollapsed
-  ? '▼'
-  : '▲';
+  ?
+  '▼'
+  :
+  '▲';
 
 
   /*
-  LISTA
+  LANÇAMENTOS
   */
 
   const list =
   document
-  .getElementById('txList');
+  .getElementById(
+    'txList'
+  );
 
 
   list.innerHTML = '';
@@ -2380,34 +3473,54 @@ function render(){
 
 
   txForMonth(key)
-  .forEach(t=>{
+  .forEach(
+    transaction=>{
 
-    rows.push({
-      kind:'tx',
-      createdAt:t.createdAt,
-      data:t
-    });
+      rows.push({
 
-  });
+        type:'transaction',
+
+        createdAt:
+        transaction.createdAt,
+
+        data:
+        transaction
+
+      });
+
+    }
+  );
 
 
   billsForMonth(key)
-  .forEach(b=>{
+  .forEach(
+    bill=>{
 
-    rows.push({
-      kind:'bill',
-      createdAt:b.createdAt,
-      data:b
-    });
+      rows.push({
 
-  });
+        type:'bill',
+
+        createdAt:
+        bill.createdAt,
+
+        data:
+        bill
+
+      });
+
+    }
+  );
 
 
   rows.sort(
     (a,b)=>
-    Number(b.createdAt || 0)
-    -
-    Number(a.createdAt || 0)
+      Number(
+        b.createdAt || 0
+      )
+      -
+      Number(
+        a.createdAt || 0
+      )
   );
 
 
@@ -2419,357 +3532,416 @@ function render(){
   }
 
 
-  rows.forEach(row=>{
+  rows.forEach(
+    row=>{
 
-    const el =
-    document.createElement('div');
-
-
-    el.className =
-    'item'
-    +
-    (
-      row.kind === 'bill'
-      &&
-      row.data.paidAt
-      ?
-      ' paid-row'
-      :
-      ''
-    );
+      const element =
+      document.createElement(
+        'div'
+      );
 
 
-    if(
-      row.kind === 'tx'
-    ){
+      /*
+      TRANSAÇÃO
+      */
 
-      const t =
-      row.data;
+      if(
+        row.type ===
+        'transaction'
+      ){
+
+        const transaction =
+        row.data;
 
 
-      const isIncome =
-      t.type === 'income';
+        const isIncome =
+        transaction.type ===
+        'income';
 
 
-      el.innerHTML = `
+        element.className =
+        'item';
 
-        <div class="desc">
 
-          ${escapeHtml(t.desc)}
+        element.innerHTML = `
+
+          <div class="desc">
+
+            ${esc(transaction.desc)}
+
+            <div class="small">
+
+              ${
+                isIncome
+                ?
+                'Receita'
+                :
+                'Despesa'
+              }
+
+              ·
+
+              ${methodLabel(transaction.method)}
+
+            </div>
+
+          </div>
+
 
           <div class="small">
 
             ${
-              isIncome
-              ?
-              'Receita'
-              :
-              'Despesa'
+              new Date(
+                transaction.createdAt
+              )
+              .toLocaleDateString(
+                'pt-BR'
+              )
             }
 
-            ·
-
-            ${methodLabel(t.method)}
-
           </div>
 
-        </div>
-
-
-        <div class="small">
-
-          ${
-            new Date(
-              t.createdAt
-            )
-            .toLocaleDateString(
-              'pt-BR'
-            )
-          }
-
-        </div>
-
-
-        <div class="small">
-
-          ${
-            t.method === 'credit'
-            ?
-            'Fatura '
-            +
-            monthName(next)
-            :
-            'Saldo do mês'
-          }
-
-        </div>
-
-
-        <div
-          class="amount ${
-            isIncome
-            ?
-            'green'
-            :
-            'red'
-          }">
-
-          ${
-            isIncome
-            ?
-            '+'
-            :
-            '-'
-          }
-
-          ${fmt(t.amount)}
-
-        </div>
-
-
-        <div class="item-actions">
-
-          <button
-            class="icon-btn repeat-icon"
-            data-repeat-tx="${t.id}"
-            title="Repetir no próximo mês">
-
-            🔁
-
-          </button>
-
-
-          <button
-            class="icon-btn"
-            data-del-tx="${t.id}"
-            title="Excluir">
-
-            🗑️
-
-          </button>
-
-        </div>
-
-      `;
-
-    }
-
-    else{
-
-      const b =
-      row.data;
-
-
-      el.innerHTML = `
-
-        <div class="desc">
-
-          ${escapeHtml(b.desc)}
 
           <div class="small">
-            A pagar
+
+            ${
+              transaction.method === 'credit'
+              ?
+              'Fatura '
+              +
+              monthName(next)
+              :
+              'Saldo do mês'
+            }
+
           </div>
 
-          ${
-            b.paidAt
-            ?
-            '<span class="paid-chip">Paga ✓</span>'
-            :
-            '<span class="pending-chip">Pendente</span>'
-          }
 
-        </div>
+          <div
+            class="amount ${
+              isIncome
+              ?
+              'green'
+              :
+              'red'
+            }"
+          >
 
+            ${
+              isIncome
+              ?
+              '+'
+              :
+              '-'
+            }
 
-        <div class="small">
+            ${fmt(transaction.amount)}
 
-          ${
-            b.paidAt
-            ?
-            'Paga em '
-            +
-            new Date(
-              b.paidAt
-            )
-            .toLocaleDateString(
-              'pt-BR'
-            )
-            :
-            'Ainda não descontada do saldo'
-          }
-
-        </div>
+          </div>
 
 
-        <div class="small">
-          Conta do mês
-        </div>
+          <div class="item-actions">
+
+            <button
+              class="icon-btn repeat-icon"
+              data-repeat-tx="${transaction.id}"
+              title="Repetir no próximo mês"
+            >
+              🔁
+            </button>
+
+            <button
+              class="icon-btn"
+              data-delete-tx="${transaction.id}"
+              title="Excluir"
+            >
+              🗑️
+            </button>
+
+          </div>
+
+        `;
+
+      }
 
 
-        <div
-          class="amount ${
-            b.paidAt
-            ?
-            'green'
-            :
-            'amber'
-          }">
+      /*
+      CONTA A PAGAR
+      */
 
-          ${fmt(b.amount)}
+      else{
 
-        </div>
+        const bill =
+        row.data;
 
 
-        <div class="bill-actions">
-
-          ${
-            b.paidAt
-            ?
-            ''
-            :
-            `<button
-              class="btn btn-success"
-              data-pay-bill="${b.id}">
-              Pago
-            </button>`
-          }
+        element.className =
+        'item'
+        +
+        (
+          bill.paidAt
+          ?
+          ' paid-row'
+          :
+          ''
+        );
 
 
-          <button
-            class="icon-btn repeat-icon"
-            data-repeat-bill="${b.id}"
-            title="Repetir no próximo mês">
+        element.innerHTML = `
 
-            🔁
+          <div class="desc">
 
-          </button>
+            ${esc(bill.desc)}
+
+            <div class="small">
+              A pagar
+            </div>
+
+            ${
+              bill.paidAt
+              ?
+              '<span class="paid-chip">Paga ✓</span>'
+              :
+              '<span class="pending-chip">Pendente</span>'
+            }
+
+          </div>
 
 
-          <button
-            class="icon-btn"
-            data-del-bill="${b.id}"
-            title="Excluir">
+          <div class="small">
 
-            🗑️
+            ${
+              bill.paidAt
+              ?
+              'Paga em '
+              +
+              new Date(
+                bill.paidAt
+              )
+              .toLocaleDateString(
+                'pt-BR'
+              )
+              :
+              'Ainda não descontada do saldo'
+            }
 
-          </button>
+          </div>
 
-        </div>
 
-      `;
+          <div class="small">
+            Conta do mês
+          </div>
+
+
+          <div
+            class="amount ${
+              bill.paidAt
+              ?
+              'green'
+              :
+              'amber'
+            }"
+          >
+
+            ${fmt(bill.amount)}
+
+          </div>
+
+
+          <div class="bill-actions">
+
+            <button
+              class="btn ${
+                bill.paidAt
+                ?
+                'btn-warning'
+                :
+                'btn-success'
+              }"
+              data-toggle-bill="${bill.id}"
+            >
+
+              ${
+                bill.paidAt
+                ?
+                '↩ Desfazer pago'
+                :
+                'Pago'
+              }
+
+            </button>
+
+
+            <button
+              class="icon-btn repeat-icon"
+              data-repeat-bill="${bill.id}"
+              title="Repetir no próximo mês"
+            >
+              🔁
+            </button>
+
+
+            <button
+              class="icon-btn"
+              data-delete-bill="${bill.id}"
+              title="Excluir"
+            >
+              🗑️
+            </button>
+
+          </div>
+
+        `;
+
+      }
+
+
+      list.appendChild(
+        element
+      );
 
     }
-
-
-    list.appendChild(el);
-
-  });
-
-
-  list
-  .querySelectorAll('[data-repeat-tx]')
-  .forEach(button=>{
-
-    button.onclick =
-    ()=>repeatTransaction(
-      button.dataset.repeatTx
-    );
-
-  });
-
-
-  list
-  .querySelectorAll('[data-del-tx]')
-  .forEach(button=>{
-
-    button.onclick =
-    ()=>deleteTx(
-      button.dataset.delTx
-    );
-
-  });
-
-
-  list
-  .querySelectorAll('[data-pay-bill]')
-  .forEach(button=>{
-
-    button.onclick =
-    ()=>payBill(
-      button.dataset.payBill
-    );
-
-  });
-
-
-  list
-  .querySelectorAll('[data-repeat-bill]')
-  .forEach(button=>{
-
-    button.onclick =
-    ()=>repeatBill(
-      button.dataset.repeatBill
-    );
-
-  });
-
-
-  list
-  .querySelectorAll('[data-del-bill]')
-  .forEach(button=>{
-
-    button.onclick =
-    ()=>deleteBill(
-      button.dataset.delBill
-    );
-
-  });
+  );
 
 
   /*
-  FATURA
+  EVENTOS DOS BOTÕES
+  */
+
+  list
+  .querySelectorAll(
+    '[data-repeat-tx]'
+  )
+  .forEach(
+    button=>{
+
+      button.onclick =
+      ()=>repeatTransaction(
+        button.dataset.repeatTx
+      );
+
+    }
+  );
+
+
+  list
+  .querySelectorAll(
+    '[data-delete-tx]'
+  )
+  .forEach(
+    button=>{
+
+      button.onclick =
+      ()=>deleteTransaction(
+        button.dataset.deleteTx
+      );
+
+    }
+  );
+
+
+  list
+  .querySelectorAll(
+    '[data-toggle-bill]'
+  )
+  .forEach(
+    button=>{
+
+      button.onclick =
+      ()=>toggleBillPaid(
+        button.dataset.toggleBill
+      );
+
+    }
+  );
+
+
+  list
+  .querySelectorAll(
+    '[data-repeat-bill]'
+  )
+  .forEach(
+    button=>{
+
+      button.onclick =
+      ()=>repeatBill(
+        button.dataset.repeatBill
+      );
+
+    }
+  );
+
+
+  list
+  .querySelectorAll(
+    '[data-delete-bill]'
+  )
+  .forEach(
+    button=>{
+
+      button.onclick =
+      ()=>deleteBill(
+        button.dataset.deleteBill
+      );
+
+    }
+  );
+
+
+  /*
+  FATURA ATUAL
   */
 
   const invoice =
-  creditTotal(prevKey);
+  creditTotal(
+    previousKey
+  );
 
 
-  const paid =
-  !!state.paidInvoices[key];
+  const isInvoicePaid =
+  !!state.paidInvoices[
+    key
+  ];
 
 
   document
-  .getElementById('currentInvoiceValue')
+  .getElementById(
+    'currentInvoiceValue'
+  )
   .textContent =
   fmt(invoice);
 
 
   document
-  .getElementById('currentInvoiceHint')
+  .getElementById(
+    'currentInvoiceHint'
+  )
   .textContent =
   'Gastos no cartão de '
   +
-  monthName(prev);
+  monthName(previous);
 
 
-  const status =
+  const invoiceStatus =
   document
-  .getElementById('invoiceStatus');
+  .getElementById(
+    'invoiceStatus'
+  );
 
 
-  status.textContent =
-  paid
+  invoiceStatus.textContent =
+  isInvoicePaid
   ?
   'Paga ✓'
   :
   'Em aberto';
 
 
-  status.className =
+  invoiceStatus.className =
   'badge '
   +
   (
-    paid
+    isInvoicePaid
     ?
     'paid'
     :
@@ -2777,19 +3949,21 @@ function render(){
   );
 
 
-  const pay =
+  const payInvoiceButton =
   document
-  .getElementById('payInvoiceBtn');
+  .getElementById(
+    'payInvoiceBtn'
+  );
 
 
-  pay.disabled =
-  paid
+  payInvoiceButton.disabled =
+  isInvoicePaid
   ||
   invoice <= 0;
 
 
-  pay.textContent =
-  paid
+  payInvoiceButton.textContent =
+  isInvoicePaid
   ?
   'Fatura paga'
   :
@@ -2801,15 +3975,21 @@ function render(){
   */
 
   document
-  .getElementById('nextInvoiceValue')
+  .getElementById(
+    'nextInvoiceValue'
+  )
   .textContent =
   fmt(
-    creditTotal(key)
+    creditTotal(
+      key
+    )
   );
 
 
   document
-  .getElementById('nextInvoiceHint')
+  .getElementById(
+    'nextInvoiceHint'
+  )
   .textContent =
   'Esses gastos serão a fatura atual em '
   +
@@ -2822,12 +4002,25 @@ function render(){
   HISTÓRICO
   */
 
-  const hist =
+  renderInvoiceHistory();
+
+}
+
+
+/* =====================================================
+   HISTÓRICO DE FATURA
+===================================================== */
+
+function renderInvoiceHistory(){
+
+  const history =
   document
-  .getElementById('invoiceHistory');
+  .getElementById(
+    'invoiceHistory'
+  );
 
 
-  hist.innerHTML = '';
+  history.innerHTML = '';
 
 
   const months =
@@ -2839,140 +4032,167 @@ function render(){
 
 
   state.transactions
+
   .filter(
-    t=>t.method === 'credit'
+    x=>
+    x.type === 'expense'
+    &&
+    x.method === 'credit'
   )
-  .forEach(t=>{
 
-    months.add(
-      nextMonthKey(
-        t.month
-      )
-    );
+  .forEach(
+    x=>{
 
-  });
+      months.add(
+        nextMonthKey(
+          x.month
+        )
+      );
+
+    }
+  );
 
 
-  const arr =
+  const sorted =
   [...months]
   .sort()
   .reverse();
 
 
-  if(!arr.length){
+  if(!sorted.length){
 
-    hist.innerHTML =
+    history.innerHTML =
     '<div class="empty">Nenhuma fatura registrada ainda.</div>';
+
+    return;
 
   }
 
 
-  arr.forEach(k=>{
+  sorted.forEach(
+    key=>{
 
-    const d =
-    dateFromMonthKey(k);
-
-
-    const src =
-    shiftMonth(
-      d,
-      -1
-    );
+      const date =
+      dateFromMonthKey(
+        key
+      );
 
 
-    const val =
-    creditTotal(
-      monthKey(src)
-    );
+      const sourceDate =
+      shiftMonth(
+        date,
+        -1
+      );
 
 
-    const isPaid =
-    !!state.paidInvoices[k];
+      const value =
+      creditTotal(
+        monthKey(
+          sourceDate
+        )
+      );
 
 
-    const el =
-    document.createElement('div');
+      const paid =
+      !!state.paidInvoices[
+        key
+      ];
 
 
-    el.className =
-    'item';
+      const element =
+      document.createElement(
+        'div'
+      );
 
 
-    el.innerHTML = `
+      element.className =
+      'item';
 
-      <div class="desc">
 
-        ${monthName(d)}
+      element.innerHTML = `
 
-        <div class="small">
-          Referente a ${monthName(src)}
+        <div class="desc">
+
+          ${monthName(date)}
+
+          <div class="small">
+
+            Referente a
+            ${monthName(sourceDate)}
+
+          </div>
+
         </div>
 
-      </div>
+        <div class="small">
+
+          ${
+            paid
+            ?
+            'Paga'
+            :
+            'Em aberto'
+          }
+
+        </div>
+
+        <div class="small"></div>
+
+        <div class="amount">
+
+          ${fmt(value)}
+
+        </div>
+
+        <div
+          class="badge ${
+            paid
+            ?
+            'paid'
+            :
+            'open'
+          }"
+        >
+
+          ${
+            paid
+            ?
+            'Paga'
+            :
+            'Aberta'
+          }
+
+        </div>
+
+      `;
 
 
-      <div class="small">
+      history.appendChild(
+        element
+      );
 
-        ${
-          isPaid
-          ?
-          'Paga'
-          :
-          'Em aberto'
-        }
-
-      </div>
-
-
-      <div class="small"></div>
-
-
-      <div class="amount">
-        ${fmt(val)}
-      </div>
-
-
-      <div
-        class="badge ${
-          isPaid
-          ?
-          'paid'
-          :
-          'open'
-        }">
-
-        ${
-          isPaid
-          ?
-          'Paga'
-          :
-          'Aberta'
-        }
-
-      </div>
-
-    `;
-
-
-    hist.appendChild(el);
-
-  });
+    }
+  );
 
 }
 
 
-/* ===============================
-   ADICIONAR
-=============================== */
+/* =====================================================
+   NOVO LANÇAMENTO
+===================================================== */
 
 document
-.getElementById('addBtn')
+.getElementById(
+  'addBtn'
+)
 .onclick =
 ()=>{
 
-  const desc =
+  const description =
   document
-  .getElementById('desc')
+  .getElementById(
+    'desc'
+  )
   .value
   .trim();
 
@@ -2980,25 +4200,31 @@ document
   const amount =
   Number(
     document
-    .getElementById('amount')
+    .getElementById(
+      'amount'
+    )
     .value
   );
 
 
   const type =
   document
-  .getElementById('type')
+  .getElementById(
+    'type'
+  )
   .value;
 
 
   const method =
   document
-  .getElementById('method')
+  .getElementById(
+    'method'
+  )
   .value;
 
 
   if(
-    !desc
+    !description
     ||
     !amount
     ||
@@ -3015,14 +4241,13 @@ document
 
 
   const key =
-  monthKey(viewDate);
-
-
-  ensureMonthBalance(key);
+  monthKey(
+    viewDate
+  );
 
 
   /*
-  A PAGAR
+  CONTA A PAGAR
   */
 
   if(
@@ -3033,8 +4258,10 @@ document
 
       id:uid(),
 
-      desc,
+      desc:
+      description,
 
+      amount:
       amount,
 
       dueDate:'',
@@ -3050,75 +4277,65 @@ document
 
   }
 
+
+  /*
+  RECEITA / DESPESA
+  */
+
   else{
 
-    const tx = {
+    state.transactions.push({
 
       id:uid(),
 
-      desc,
+      desc:
+      description,
 
+      amount:
       amount,
 
+      type:
       type,
 
+      method:
       method,
 
-      month:key,
+      month:
+      key,
 
       createdAt:
       Date.now()
 
-    };
-
-
-    state.transactions.push(tx);
-
-
-    /*
-    RECEITA
-    SOMA NO SALDO DAQUELE MÊS.
-    */
-
-    if(
-      type === 'income'
-    ){
-
-      addToMonthBalance(
-        key,
-        amount
-      );
-
-    }
-
-
-    /*
-    DESPESA FORA DO CARTÃO
-    DESCONTA DO SALDO DAQUELE MÊS.
-    */
-
-    else if(
-      method !== 'credit'
-    ){
-
-      subtractFromMonthBalance(
-        key,
-        amount
-      );
-
-    }
+    });
 
   }
 
 
-  document
-  .getElementById('desc')
-  .value = '';
+  /*
+  NÃO alteramos saldo manualmente.
+
+  render() calculará automaticamente:
+
+  saldo anterior
+  + receita
+  - despesas.
+  */
 
 
   document
-  .getElementById('amount')
-  .value = '';
+  .getElementById(
+    'desc'
+  )
+  .value =
+  '';
+
+
+  document
+  .getElementById(
+    'amount'
+  )
+  .value =
+  '';
 
 
   save();
@@ -3126,24 +4343,30 @@ document
 };
 
 
-/* ===============================
-   TIPO
-=============================== */
+/* =====================================================
+   ALTERAR TIPO
+===================================================== */
 
 document
-.getElementById('type')
+.getElementById(
+  'type'
+)
 .onchange =
 event=>{
 
   const method =
   document
-  .getElementById('method');
+  .getElementById(
+    'method'
+  );
 
 
   if(
-    event.target.value === 'income'
+    event.target.value ===
+    'income'
     ||
-    event.target.value === 'payable'
+    event.target.value ===
+    'payable'
   ){
 
     method.value =
@@ -3164,209 +4387,41 @@ event=>{
 };
 
 
-/* ===============================
-   PAGAR CONTA
-=============================== */
-
-function payBill(id){
-
-  const b =
-  state.bills.find(
-    x=>x.id === id
-  );
-
-
-  if(
-    !b
-    ||
-    b.paidAt
-  ){
-
-    return;
-
-  }
-
-
-  if(
-    !confirm(
-      `Marcar "${b.desc}" como paga por ${fmt(b.amount)}?`
-    )
-  ){
-
-    return;
-
-  }
-
-
-  subtractFromMonthBalance(
-    b.month,
-    b.amount
-  );
-
-
-  b.paidAt =
-  Date.now();
-
-
-  save();
-
-}
-
-
-/* ===============================
-   EXCLUIR CONTA
-=============================== */
-
-function deleteBill(id){
-
-  const b =
-  state.bills.find(
-    x=>x.id === id
-  );
-
-
-  if(!b){
-    return;
-  }
-
-
-  if(
-    !confirm(
-      'Excluir esta conta?'
-    )
-  ){
-
-    return;
-
-  }
-
-
-  /*
-  Se já estava paga,
-  devolve o valor ao saldo daquele mês.
-  */
-
-  if(b.paidAt){
-
-    addToMonthBalance(
-      b.month,
-      b.amount
-    );
-
-  }
-
-
-  state.bills =
-  state.bills.filter(
-    x=>x.id !== id
-  );
-
-
-  save();
-
-}
-
-
-/* ===============================
-   EXCLUIR TRANSAÇÃO
-=============================== */
-
-function deleteTx(id){
-
-  const t =
-  state.transactions.find(
-    x=>x.id === id
-  );
-
-
-  if(!t){
-    return;
-  }
-
-
-  if(
-    !confirm(
-      'Excluir este lançamento?'
-    )
-  ){
-
-    return;
-
-  }
-
-
-  /*
-  Receita:
-  retirar do saldo daquele mês.
-  */
-
-  if(
-    t.type === 'income'
-  ){
-
-    subtractFromMonthBalance(
-      t.month,
-      t.amount
-    );
-
-  }
-
-
-  /*
-  Despesa imediata:
-  devolver ao saldo daquele mês.
-  */
-
-  else if(
-    t.method !== 'credit'
-  ){
-
-    addToMonthBalance(
-      t.month,
-      t.amount
-    );
-
-  }
-
-
-  state.transactions =
-  state.transactions.filter(
-    x=>x.id !== id
-  );
-
-
-  save();
-
-}
-
-
-/* ===============================
+/* =====================================================
    PAGAR FATURA
-=============================== */
+===================================================== */
 
 document
-.getElementById('payInvoiceBtn')
+.getElementById(
+  'payInvoiceBtn'
+)
 .onclick =
 ()=>{
 
-  const key =
-  monthKey(viewDate);
+  const currentKey =
+  monthKey(
+    viewDate
+  );
 
 
-  const previousKey =
-  previousMonthKey(key);
+  const sourceKey =
+  previousMonthKey(
+    currentKey
+  );
 
 
-  const value =
+  const amount =
   creditTotal(
-    previousKey
+    sourceKey
   );
 
 
   if(
-    state.paidInvoices[key]
+    state.paidInvoices[
+      currentKey
+    ]
     ||
-    value <= 0
+    amount <= 0
   ){
 
     return;
@@ -3376,30 +4431,28 @@ document
 
   if(
     !confirm(
-      `Pagar a fatura de ${fmt(value)}?`
+      `Pagar a fatura de ${fmt(amount)}? O valor será descontado do Total em conta de ${monthName(viewDate)}.`
     )
   ){
 
     return;
 
   }
-
-
-  subtractFromMonthBalance(
-    key,
-    value
-  );
 
 
   const paidAt =
   Date.now();
 
 
-  state.paidInvoices[key] = {
+  state.paidInvoices[
+    currentKey
+  ] = {
 
+    paidAt:
     paidAt,
 
-    amount:value
+    amount:
+    amount
 
   };
 
@@ -3408,29 +4461,41 @@ document
 
     id:uid(),
 
-    invoiceMonth:key,
+    invoiceMonth:
+    currentKey,
 
     sourceMonth:
-    previousKey,
+    sourceKey,
 
-    amount:value,
+    amount:
+    amount,
 
+    paidAt:
     paidAt
 
   });
 
+
+  /*
+  O saldo é recalculado
+  automaticamente porque
+  invoicePaymentTotal()
+  passou a incluir essa fatura.
+  */
 
   save();
 
 };
 
 
-/* ===============================
-   MESES
-=============================== */
+/* =====================================================
+   NAVEGAR NOS MESES
+===================================================== */
 
 document
-.getElementById('prevMonth')
+.getElementById(
+  'prevMonth'
+)
 .onclick =
 ()=>{
 
@@ -3447,7 +4512,9 @@ document
 
 
 document
-.getElementById('nextMonth')
+.getElementById(
+  'nextMonth'
+)
 .onclick =
 ()=>{
 
@@ -3458,91 +4525,114 @@ document
   );
 
 
-  ensureMonthBalance(
-    monthKey(viewDate)
-  );
-
-
-  localSave();
-
   render();
 
 };
 
 
-/* ===============================
+/* =====================================================
    EDITAR SALDO
-=============================== */
+===================================================== */
 
-const modal =
+const balanceModal =
 document
-.getElementById('balanceModal');
+.getElementById(
+  'balanceModal'
+);
 
 
 document
-.getElementById('editBalance')
+.getElementById(
+  'editBalance'
+)
 .onclick =
 ()=>{
 
   const key =
-  monthKey(viewDate);
-
-
-  document
-  .getElementById('balanceInput')
-  .value =
-  getMonthBalance(key);
-
-
-  document
-  .getElementById('balanceModalMonth')
-  .textContent =
-  monthName(viewDate);
-
-
-  modal
-  .classList
-  .add('open');
-
-};
-
-
-document
-.getElementById('cancelBalance')
-.onclick =
-()=>{
-
-  modal
-  .classList
-  .remove('open');
-
-};
-
-
-document
-.getElementById('saveBalance')
-.onclick =
-()=>{
-
-  const key =
-  monthKey(viewDate);
-
-
-  setMonthBalance(
-    key,
-    Number(
-      document
-      .getElementById('balanceInput')
-      .value
-    )
-    ||
-    0
+  monthKey(
+    viewDate
   );
 
 
-  modal
+  document
+  .getElementById(
+    'balanceInput'
+  )
+  .value =
+  getMonthBalance(
+    key
+  );
+
+
+  document
+  .getElementById(
+    'balanceModalMonth'
+  )
+  .textContent =
+  monthName(
+    viewDate
+  );
+
+
+  balanceModal
   .classList
-  .remove('open');
+  .add(
+    'open'
+  );
+
+};
+
+
+document
+.getElementById(
+  'cancelBalance'
+)
+.onclick =
+()=>{
+
+  balanceModal
+  .classList
+  .remove(
+    'open'
+  );
+
+};
+
+
+document
+.getElementById(
+  'saveBalance'
+)
+.onclick =
+()=>{
+
+  const desired =
+  Number(
+    document
+    .getElementById(
+      'balanceInput'
+    )
+    .value
+  );
+
+
+  const key =
+  monthKey(
+    viewDate
+  );
+
+
+  setDisplayedBalance(
+    key,
+    desired || 0
+  );
+
+
+  balanceModal
+  .classList
+  .remove(
+    'open'
+  );
 
 
   save();
@@ -3550,12 +4640,14 @@ document
 };
 
 
-/* ===============================
-   COLAPSAR
-=============================== */
+/* =====================================================
+   RECOLHER LANÇAMENTOS
+===================================================== */
 
 document
-.getElementById('toggleTx')
+.getElementById(
+  'toggleTx'
+)
 .onclick =
 ()=>{
 
@@ -3578,12 +4670,14 @@ document
 };
 
 
-/* ===============================
+/* =====================================================
    EXPORTAR
-=============================== */
+===================================================== */
 
 document
-.getElementById('exportBtn')
+.getElementById(
+  'exportBtn'
+)
 .onclick =
 ()=>{
 
@@ -3603,46 +4697,56 @@ document
   );
 
 
-  const a =
-  document.createElement('a');
+  const link =
+  document.createElement(
+    'a'
+  );
 
 
-  a.href =
-  URL.createObjectURL(blob);
+  link.href =
+  URL.createObjectURL(
+    blob
+  );
 
 
-  a.download =
+  link.download =
   'minhas-financas-backup.json';
 
 
-  a.click();
+  link.click();
 
 
   URL.revokeObjectURL(
-    a.href
+    link.href
   );
 
 };
 
 
-/* ===============================
+/* =====================================================
    IMPORTAR
-=============================== */
+===================================================== */
 
 document
-.getElementById('importBtn')
+.getElementById(
+  'importBtn'
+)
 .onclick =
 ()=>{
 
   document
-  .getElementById('importFile')
+  .getElementById(
+    'importFile'
+  )
   .click();
 
 };
 
 
 document
-.getElementById('importFile')
+.getElementById(
+  'importFile'
+)
 .onchange =
 event=>{
 
@@ -3651,7 +4755,9 @@ event=>{
 
 
   if(!file){
+
     return;
+
   }
 
 
@@ -3671,56 +4777,61 @@ event=>{
 
 
       /*
-      Backup novo.
+      BACKUP ANTIGO
       */
 
-      if(data.balances){
-
-        state = data;
-
-      }
-
-      /*
-      Backup antigo.
-      */
-
-      else if(
-        typeof data.balance !== 'undefined'
+      if(
+        typeof data.balance !==
+        'undefined'
+        &&
+        !data.balances
       ){
 
-        state = {
+        state =
+        normalizeState({
 
           balances:{
             '2026-08':
             Number(
-              data.balance || 0
+              data.balance
+              ||
+              0
             )
           },
 
           transactions:
-          data.transactions || [],
-
-          paidInvoices:
-          data.paidInvoices || {},
-
-          invoicePayments:
-          data.invoicePayments || [],
+          data.transactions,
 
           bills:
-          data.bills || []
+          data.bills,
 
-        };
+          paidInvoices:
+          data.paidInvoices,
+
+          invoicePayments:
+          data.invoicePayments
+
+        });
 
       }
+
+
+      /*
+      BACKUP NOVO
+      */
 
       else{
 
-        throw new Error();
+        state =
+        normalizeState(
+          data
+        );
 
       }
 
 
-      localSave();
+      migrateBalanceModel();
+
 
       save();
 
@@ -3731,7 +4842,12 @@ event=>{
 
     }
 
-    catch{
+    catch(error){
+
+      console.error(
+        error
+      );
+
 
       alert(
         'Arquivo inválido.'
@@ -3742,23 +4858,26 @@ event=>{
   };
 
 
-  reader.readAsText(file);
+  reader.readAsText(
+    file
+  );
 
 };
 
 
-/* ===============================
+/* =====================================================
    INICIAR
-=============================== */
+===================================================== */
 
 initAuth();
 
 </script>
 
+
 <script>
 
 /*
-PWA
+PWA / APLICATIVO INSTALÁVEL
 */
 
 if(
@@ -3777,9 +4896,10 @@ if(
         await navigator
         .serviceWorker
         .register(
-          './sw.js?v=5',
+          './sw.js?v=6',
           {
-            updateViaCache:'none'
+            updateViaCache:
+            'none'
           }
         );
 
@@ -3788,11 +4908,11 @@ if(
 
       }
 
-      catch(err){
+      catch(error){
 
         console.error(
           'Service Worker:',
-          err
+          error
         );
 
       }
