@@ -1470,9 +1470,21 @@ function immediateExpensesTotal(key){
 }
 
 
+function billMethod(bill){
+
+  return bill.method === 'credit'
+    ?
+    'credit'
+    :
+    'pix';
+
+}
+
+
 function creditTotal(key){
 
-  return txForMonth(key)
+  const fromTransactions =
+  txForMonth(key)
 
   .filter(
     x=>
@@ -1487,6 +1499,26 @@ function creditTotal(key){
     0
   );
 
+
+  const fromBills =
+  billsForMonth(key)
+
+  .filter(
+    x=>
+      !!x.paidAt
+      &&
+      billMethod(x) === 'credit'
+  )
+
+  .reduce(
+    (sum,x)=>
+    sum + Number(x.amount || 0),
+    0
+  );
+
+
+  return fromTransactions + fromBills;
+
 }
 
 
@@ -1495,7 +1527,10 @@ function paidBillsTotal(key){
   return billsForMonth(key)
 
   .filter(
-    x=>!!x.paidAt
+    x=>
+    !!x.paidAt
+    &&
+    billMethod(x) !== 'credit'
   )
 
   .reduce(
@@ -1945,6 +1980,9 @@ async function syncAll(){
           amount:
           Number(x.amount),
 
+          method:
+          billMethod(x),
+
           due_date:
           x.dueDate
           ||
@@ -2289,6 +2327,11 @@ async function loadRemote(){
 
       amount:
       Number(x.amount),
+
+      method:
+      x.method
+      ||
+      'pix',
 
       dueDate:
       x.due_date
@@ -2861,6 +2904,8 @@ function repeatTransaction(id){
       transaction.amount
     ),
 
+    method:'pix',
+
     dueDate:'',
 
     month:
@@ -2949,6 +2994,9 @@ function repeatBill(id){
       bill.amount
     ),
 
+    method:
+    billMethod(bill),
+
     dueDate:'',
 
     month:
@@ -2991,6 +3039,10 @@ function toggleBillPaid(id){
 
     if(
       !confirm(
+        billMethod(bill) === 'credit'
+        ?
+        `Voltar "${bill.desc}" para pendente? O valor de ${fmt(bill.amount)} será retirado da fatura do cartão.`
+        :
         `Voltar "${bill.desc}" para pendente? O valor de ${fmt(bill.amount)} voltará automaticamente para o Total em conta.`
       )
     ){
@@ -3014,6 +3066,10 @@ function toggleBillPaid(id){
 
   if(
     !confirm(
+      billMethod(bill) === 'credit'
+      ?
+      `Marcar "${bill.desc}" como paga no cartão por ${fmt(bill.amount)}? O valor entrará na fatura do próximo mês e não será descontado do Total em conta agora.`
+      :
       `Marcar "${bill.desc}" como paga por ${fmt(bill.amount)}? O valor será descontado do Total em conta.`
     )
   ){
@@ -3498,6 +3554,8 @@ function render(){
 
             <div class="small">
               A pagar
+              ·
+              ${methodLabel(billMethod(bill))}
             </div>
 
             ${
@@ -3525,14 +3583,28 @@ function render(){
                 'pt-BR'
               )
               :
-              'Ainda não descontada do saldo'
+              (
+                billMethod(bill) === 'credit'
+                ?
+                'Ainda não lançada na fatura'
+                :
+                'Ainda não descontada do saldo'
+              )
             }
 
           </div>
 
 
           <div class="small">
-            Conta do mês
+            ${
+              billMethod(bill) === 'credit'
+              ?
+              'Fatura '
+              +
+              monthName(next)
+              :
+              'Conta do mês'
+            }
           </div>
 
 
@@ -3836,6 +3908,28 @@ function renderInvoiceHistory(){
   );
 
 
+  state.bills
+
+  .filter(
+    x=>
+    !!x.paidAt
+    &&
+    billMethod(x) === 'credit'
+  )
+
+  .forEach(
+    x=>{
+
+      months.add(
+        nextMonthKey(
+          x.month
+        )
+      );
+
+    }
+  );
+
+
   const sorted =
   [...months]
   .sort()
@@ -4012,6 +4106,13 @@ document
       amount:
       amount,
 
+      method:
+      method === 'credit'
+      ?
+      'credit'
+      :
+      'pix',
+
       dueDate:'',
 
       month:key,
@@ -4076,12 +4177,15 @@ document
 };
 
 
-document
-.getElementById(
-  'type'
-)
-.onchange =
-event=>{
+function applyMethodRules(){
+
+  const type =
+  document
+  .getElementById(
+    'type'
+  )
+  .value;
+
 
   const method =
   document
@@ -4090,12 +4194,32 @@ event=>{
   );
 
 
+  const allowed =
+  type === 'payable'
+  ?
+  ['pix','credit']
+  :
+  ['pix','debit','cash','credit'];
+
+
+  [...method.options]
+  .forEach(
+    option=>{
+
+      option.disabled =
+      !allowed.includes(
+        option.value
+      );
+
+      option.hidden =
+      option.disabled;
+
+    }
+  );
+
+
   if(
-    event.target.value ===
-    'income'
-    ||
-    event.target.value ===
-    'payable'
+    type === 'income'
   ){
 
     method.value =
@@ -4111,9 +4235,29 @@ event=>{
     method.disabled =
     false;
 
+
+    if(
+      !allowed.includes(
+        method.value
+      )
+    ){
+
+      method.value =
+      'pix';
+
+    }
+
   }
 
-};
+}
+
+
+document
+.getElementById(
+  'type'
+)
+.onchange =
+applyMethodRules;
 
 
 document
